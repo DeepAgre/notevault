@@ -14,7 +14,8 @@ from crud import (
     toggle_favorite_note,
     restore_note,
     get_note_stats,
-    permanently_delete_note
+    permanently_delete_note,
+    get_dashboard_data
 )
 from sqlalchemy.orm import Session
 from auth import get_current_user
@@ -63,6 +64,13 @@ def profile(
     current_user: User = Depends(get_current_user)
 ):
     return current_user
+
+@router.get("/dashboard")
+def dashboard_data(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return get_dashboard_data(db, current_user)
 
 
 @router.post("/login", response_model=LoginResponse)

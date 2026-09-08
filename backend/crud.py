@@ -411,3 +411,14 @@ def get_note_stats(
         "pinned_notes": pinned_notes,
         "trash_notes": trash_notes
     }
+
+def get_dashboard_data(db, current_user):
+    return {
+        "user": {
+            "id": current_user.id,
+            "username": current_user.username,
+            "email": current_user.email,
+        },
+        "notes": get_notes(db, current_user),
+        "stats": get_note_stats(db, current_user),
+    }
