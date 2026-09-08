@@ -117,19 +117,14 @@ useEffect(() => {
   };
 }, []);
 
-  useEffect(() => {
+  uuseEffect(() => {
   const loadDashboard = async () => {
     try {
-      const [notesResponse, profileResponse, statsResponse] =
-        await Promise.all([
-          api.get("/notes"),
-          api.get("/profile"),
-          api.get("/notes/stats"),
-        ]);
+      const response = await api.get("/dashboard");
 
-      setNotes(notesResponse.data);
-      setUser(profileResponse.data);
-      setStats(statsResponse.data);
+      setNotes(response.data.notes);
+      setUser(response.data.user);
+      setStats(response.data.stats);
     } catch (error) {
       console.log(error);
       toast.error("Failed to load dashboard");
