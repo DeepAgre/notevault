@@ -109,8 +109,11 @@ useEffect(() => {
 
   if (loading) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#FFFDF8]">
-      <div className="h-9 w-9 animate-spin rounded-full border-4 border-[#E8E3D8] border-t-[#7C6CF2]" />
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex items-center gap-3 text-sm text-slate-500">
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
+        <span>Loading trash...</span>
+      </div>
     </div>
   );
 }

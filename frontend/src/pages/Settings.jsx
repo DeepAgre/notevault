@@ -229,13 +229,10 @@ const [exporting, setExporting] = useState(false);
 
   if (loading) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
-      <div className="text-center">
-        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-500" />
-
-        <p className="mt-4 text-sm text-slate-500">
-          Loading your profile...
-        </p>
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex items-center gap-3 text-sm text-slate-500">
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
+        <span>Loading your settings...</span>
       </div>
     </div>
   );

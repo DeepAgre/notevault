@@ -118,40 +118,28 @@ useEffect(() => {
 }, []);
 
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const response = await api.get("/notes");
-        setNotes(response.data);
-      } catch (error) {
-        console.log(error);
-        toast.error("Failed to load notes");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadDashboard = async () => {
+    try {
+      const [notesResponse, profileResponse, statsResponse] =
+        await Promise.all([
+          api.get("/notes"),
+          api.get("/profile"),
+          api.get("/notes/stats"),
+        ]);
 
-    const fetchProfile = async () => {
-      try {
-        const response = await api.get("/profile");
-        setUser(response.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
+      setNotes(notesResponse.data);
+      setUser(profileResponse.data);
+      setStats(statsResponse.data);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to load dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchStats = async () => {
-      try {
-        const response = await api.get("/notes/stats");
-        setStats(response.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchNotes();
-    fetchProfile();
-    fetchStats();
-  }, []);
+  loadDashboard();
+}, []);
 
   const resetEditor = () => {
     setShowModal(false);
@@ -349,12 +337,15 @@ useEffect(() => {
   ];
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FFFDF8]">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-[#E8E3D8] border-t-[#7C6CF2]" />
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex items-center gap-3 text-sm text-slate-500">
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
+        <span>Loading your notes...</span>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-[#FFFDF8] text-[#292726]">
