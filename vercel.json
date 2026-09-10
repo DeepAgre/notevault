@@ -20,11 +20,11 @@
         "service": "backend"
       }
     },
-
     {
-      "source": "/((?!api/).*)",
+      "source": "/(.*)",
       "destination": {
-        "service": "frontend"
+        "service": "frontend",
+        "path": "index.html"
       }
     }
   ]
