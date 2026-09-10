@@ -117,7 +117,7 @@ useEffect(() => {
   };
 }, []);
 
-  uuseEffect(() => {
+  useEffect(() => {
   const loadDashboard = async () => {
     try {
       const response = await api.get("/dashboard");
