@@ -76,7 +76,8 @@ const [sharing, setSharing] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const profileMenuRef = useRef(null);
-  const mobileMenuRef = useRef(null);
+const mobileProfileMenuRef = useRef(null);
+const mobileMenuRef = useRef(null);
   const [noteToDelete, setNoteToDelete] = useState(null);
 
   const [user, setUser] = useState(null);
@@ -99,11 +100,13 @@ useEffect(() => {
   const handleOutsideClick = (event) => {
     // Close profile dropdown when clicking outside
     if (
-      profileMenuRef.current &&
-      !profileMenuRef.current.contains(event.target)
-    ) {
-      setShowProfileMenu(false);
-    }
+  profileMenuRef.current &&
+  !profileMenuRef.current.contains(event.target) &&
+  mobileProfileMenuRef.current &&
+  !mobileProfileMenuRef.current.contains(event.target)
+) {
+  setShowProfileMenu(false);
+}
 
     // Close mobile menu when clicking outside
     if (
@@ -702,7 +705,7 @@ useEffect(() => {
   />
 </div>
               {/* Profile */}
-              <div ref={profileMenuRef} className="relative lg:block">
+              <div ref={profileMenuRef} className="relative hidden lg:block">
 
                 <button
                   onClick={() =>
@@ -777,6 +780,79 @@ useEffect(() => {
 <div className="mt-3 flex items-center justify-between gap-3 lg:mt-8">
 
   <div className="flex items-center gap-2">
+
+    {/* Mobile Profile */}
+    <div
+      ref={mobileProfileMenuRef}
+      className="relative lg:hidden"
+    >
+      <button
+        onClick={() =>
+          setShowProfileMenu((value) => !value)
+        }
+        className="flex h-11 cursor-pointer items-center gap-2 rounded-2xl border border-[#E7E2D9] bg-white px-3 transition hover:border-[#D7D0C7]"
+      >
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFE0B8] text-sm font-bold text-[#9B651E]">
+          {user?.username?.charAt(0)?.toUpperCase() || "U"}
+        </div>
+
+        <ChevronDown
+          size={15}
+          className="text-[#AAA39A]"
+        />
+      </button>
+
+      <AnimatePresence>
+        {showProfileMenu && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="absolute left-0 top-[calc(100%+8px)] z-40 w-56 rounded-2xl border border-[#E7E2D9] bg-white p-2 shadow-xl"
+          >
+            <div className="px-3 py-3.5">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#AAA39A]">
+                Account
+              </p>
+
+              <p className="truncate text-sm font-semibold text-[#3E3A36]">
+                {user?.username}
+              </p>
+
+              <p className="mt-1 truncate text-xs text-[#9B948C]">
+                {user?.email}
+              </p>
+            </div>
+
+            <div className="my-1 border-t border-[#EEEAE3]" />
+
+            <button
+              onClick={() => {
+                setShowProfileMenu(false);
+                navigate("/settings");
+              }}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#625E59] transition hover:bg-[#F7F5F0]"
+            >
+              <Settings size={17} />
+              Settings
+            </button>
+
+            <button
+              onClick={() => {
+                setShowProfileMenu(false);
+                handleLogout();
+              }}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#A35A62] transition hover:bg-[#FFF1F2]"
+            >
+              <LogOut size={17} />
+              Logout
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+
+    {/* Active Filter */}
     {activeFilter !== "all" && (
       <button
         onClick={() => setActiveFilter("all")}
@@ -787,6 +863,7 @@ useEffect(() => {
           : "Favorites"}
       </button>
     )}
+
   </div>
 
   <motion.button
