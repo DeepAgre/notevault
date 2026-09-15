@@ -702,7 +702,7 @@ useEffect(() => {
   />
 </div>
               {/* Profile */}
-              <div ref={profileMenuRef} className="relative">
+              <div ref={profileMenuRef} className="relative lg:block">
 
                 <button
                   onClick={() =>
@@ -774,31 +774,32 @@ useEffect(() => {
           </header>
 
           {/* Action row */}
-          <div className="mt-3 flex items-center justify-between lg:mt-8">
+<div className="mt-3 flex items-center justify-between gap-3 lg:mt-8">
 
-            <div className="flex items-center gap-2">
-              {activeFilter !== "all" && (
-                <button
-                  onClick={() => setActiveFilter("all")}
-                  className="rounded-full bg-[#F0EDFF] px-3.5 py-2 text-xs font-semibold text-[#6657D8]"
-                >
-                  {activeFilter === "pinned"
-                    ? "Pinned"
-                    : "Favorites"}
-                </button>
-              )}
-            </div>
+  <div className="flex items-center gap-2">
+    {activeFilter !== "all" && (
+      <button
+        onClick={() => setActiveFilter("all")}
+        className="cursor-pointer rounded-full bg-[#F0EDFF] px-3.5 py-2 text-xs font-semibold text-[#6657D8]"
+      >
+        {activeFilter === "pinned"
+          ? "Pinned"
+          : "Favorites"}
+      </button>
+    )}
+  </div>
 
-            <motion.button
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={openCreateModal}
-              className="flex cursor-pointer items-center gap-2 rounded-2xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white shadow-md shadow-[#7C6CF2]/20 transition hover:bg-[#6E5EE5]"
-            >
-              <Plus size={18} />
-              New note
-            </motion.button>
-          </div>
+  <motion.button
+    whileHover={{ y: -2 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={openCreateModal}
+    className="flex cursor-pointer items-center gap-2 rounded-2xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white shadow-md shadow-[#7C6CF2]/20 transition hover:bg-[#6E5EE5]"
+  >
+    <Plus size={18} />
+    New note
+  </motion.button>
+
+</div>
 
           {/* Stats */}
 <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
