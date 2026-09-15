@@ -17,6 +17,7 @@ import {
   Settings,
   Trash2,
   X,
+  Share2,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -60,6 +61,9 @@ function Dashboard() {
 
   const [showModal, setShowModal] = useState(false);
   const [viewingNote, setViewingNote] = useState(null);
+  const [noteToShare, setNoteToShare] = useState(null);
+  const [shareRecipient, setShareRecipient] = useState("");
+const [sharing, setSharing] = useState(false);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -284,6 +288,45 @@ useEffect(() => {
     }
   };
 
+  const shareNote = async () => {
+  if (!noteToShare) {
+    return;
+  }
+
+  if (!shareRecipient.trim()) {
+    toast.error("Enter a username or email");
+    return;
+  }
+
+  setSharing(true);
+
+  try {
+    const response = await api.post(
+      `/notes/${noteToShare.id}/share`,
+      {
+        recipient: shareRecipient.trim(),
+      }
+    );
+
+    toast.success(
+      `Note shared with ${response.data.recipient}`
+    );
+
+    setNoteToShare(null);
+    setShareRecipient("");
+  } catch (error) {
+    console.log(error);
+
+    const message =
+      error.response?.data?.detail ||
+      "Failed to share note";
+
+    toast.error(message);
+  } finally {
+    setSharing(false);
+  }
+};
+
   const filteredNotes = useMemo(() => {
     return [...notes]
       .filter((note) => {
@@ -309,6 +352,27 @@ useEffect(() => {
           : dateA - dateB;
       });
   }, [notes, searchQuery, activeFilter, sortOrder]);
+
+  const handleStatClick = (stat) => {
+  if (stat === "total") {
+    setActiveFilter("all");
+    return;
+  }
+
+  if (stat === "pinned") {
+    setActiveFilter("pinned");
+    return;
+  }
+
+  if (stat === "favorite") {
+    setActiveFilter("favorite");
+    return;
+  }
+
+  if (stat === "trash") {
+    navigate("/trash");
+  }
+};
 
   const navItems = [
     {
@@ -737,67 +801,77 @@ useEffect(() => {
           </div>
 
           {/* Stats */}
-          <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
+<div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
 
-            <div className="rounded-3xl border border-[#EEE9E1] bg-white p-5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#8C857D]">
-                  Notes
-                </span>
+  <button
+    onClick={() => handleStatClick("total")}
+    className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-white p-5 text-left transition hover:-translate-y-0.5"
+  >
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-[#8C857D]">
+        Notes
+      </span>
 
-                <FileText size={18} className="text-[#7C6CF2]" />
-              </div>
+      <FileText size={18} className="text-[#7C6CF2]" />
+    </div>
 
-              <p className="mt-4 text-3xl font-bold text-[#302D2A]">
-                {stats.total_notes}
-              </p>
-            </div>
+    <p className="mt-4 text-3xl font-bold text-[#302D2A]">
+      {stats.total_notes}
+    </p>
+  </button>
 
-            <div className="rounded-3xl border border-[#EEE9E1] bg-[#FFF8D9] p-5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#8C857D]">
-                  Favorites
-                </span>
+  <button
+    onClick={() => handleStatClick("favorite")}
+    className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#FFF8D9] p-5 text-left transition hover:-translate-y-0.5"
+  >
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-[#8C857D]">
+        Favorites
+      </span>
 
-                <Heart size={18} className="text-[#C58B16]" />
-              </div>
+      <Heart size={18} className="text-[#C58B16]" />
+    </div>
 
-              <p className="mt-4 text-3xl font-bold text-[#514421]">
-                {stats.favorite_notes}
-              </p>
-            </div>
+    <p className="mt-4 text-3xl font-bold text-[#514421]">
+      {stats.favorite_notes}
+    </p>
+  </button>
 
-            <div className="rounded-3xl border border-[#EEE9E1] bg-[#E7F9FF] p-5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#62808A]">
-                  Pinned
-                </span>
+  <button
+    onClick={() => handleStatClick("pinned")}
+    className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#E7F9FF] p-5 text-left transition hover:-translate-y-0.5"
+  >
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-[#62808A]">
+        Pinned
+      </span>
 
-                <Pin size={18} className="text-[#1685A0]" />
-              </div>
+      <Pin size={18} className="text-[#1685A0]" />
+    </div>
 
-              <p className="mt-4 text-3xl font-bold text-[#245A68]">
-                {stats.pinned_notes}
-              </p>
-            </div>
+    <p className="mt-4 text-3xl font-bold text-[#245A68]">
+      {stats.pinned_notes}
+    </p>
+  </button>
 
-            <button
-              onClick={() => navigate("/trash")}
-              className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#FFF0F2] p-5 text-left transition hover:-translate-y-0.5"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#9A7277]">
-                  Trash
-                </span>
+  <button
+    onClick={() => handleStatClick("trash")}
+    className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#FFF0F2] p-5 text-left transition hover:-translate-y-0.5"
+  >
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-[#9A7277]">
+        Trash
+      </span>
 
-                <Trash2 size={18} className="text-[#B85D69]" />
-              </div>
+      <Trash2 size={18} className="text-[#B85D69]" />
+    </div>
 
-              <p className="mt-4 text-3xl font-bold text-[#63343B]">
-                {stats.trash_notes}
-              </p>
-            </button>
-          </div>
+    <p className="mt-4 text-3xl font-bold text-[#63343B]">
+      {stats.trash_notes}
+    </p>
+  </button>
+
+</div>
 
           {/* Notes */}
           <section className="mt-9">
@@ -932,6 +1006,17 @@ useEffect(() => {
                         >
                           <Pencil size={16} />
                         </button>
+
+                        <button
+  onClick={(e) => {
+    e.stopPropagation();
+    setNoteToShare(note);
+  }}
+  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-white/60 text-[#756E67] transition hover:bg-white"
+  title="Share"
+>
+  <Share2 size={16} />
+</button>
 
                         <button
                           onClick={(e) => {
@@ -1145,6 +1230,122 @@ useEffect(() => {
           </div>
         )}
       </AnimatePresence>
+
+            {/* Share Note */}
+      <AnimatePresence>
+        {noteToShare && (
+          <div
+            className="fixed inset-0 z-[65] flex items-center justify-center bg-[#3D3940]/30 p-4 backdrop-blur-sm"
+            onClick={() => {
+              if (!sharing) {
+                setNoteToShare(null);
+                setShareRecipient("");
+              }
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-[30px] bg-white p-7 shadow-2xl"
+            >
+              <div className="flex items-start justify-between gap-4">
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B948C]">
+                    Share note
+                  </p>
+
+                  <h2 className="mt-2 break-words text-2xl font-bold text-[#302D2A]">
+                    Share "{noteToShare.title}"
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-[#77716B]">
+                    A separate copy will be created for the recipient.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setNoteToShare(null);
+                    setShareRecipient("");
+                  }}
+                  disabled={sharing}
+                  className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-[#F7F5F0] text-[#77716B] transition hover:bg-[#EEEAE3] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <X size={18} />
+                </button>
+
+              </div>
+
+              <div className="mt-7">
+
+                <label className="mb-2 block text-sm font-medium text-[#625E59]">
+                  Recipient
+                </label>
+
+                <input
+                  type="text"
+                  value={shareRecipient}
+                  onChange={(e) =>
+                    setShareRecipient(e.target.value)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !sharing) {
+                      shareNote();
+                    }
+                  }}
+                  placeholder="Username or email"
+                  autoFocus
+                  disabled={sharing}
+                  className="w-full rounded-2xl border border-[#E5E0D8] bg-[#FCFBF8] px-4 py-3.5 text-[#302D2A] outline-none transition placeholder:text-[#B0AAA2] focus:border-[#B9AEF6] focus:ring-4 focus:ring-[#EEEAFE] disabled:cursor-not-allowed disabled:opacity-60"
+                />
+
+                <p className="mt-2 text-xs text-[#A19A92]">
+                  The recipient will receive an independent copy of this note.
+                </p>
+
+              </div>
+
+              <div className="mt-7 flex justify-end gap-2">
+
+                <button
+                  onClick={() => {
+                    setNoteToShare(null);
+                    setShareRecipient("");
+                  }}
+                  disabled={sharing}
+                  className="cursor-pointer rounded-xl px-5 py-3 text-sm font-medium text-[#77716B] transition hover:bg-[#F7F5F0] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={shareNote}
+                  disabled={sharing || !shareRecipient.trim()}
+                  className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#6E5EE5] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {sharing ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                      Sharing...
+                    </>
+                  ) : (
+                    <>
+                      <Share2 size={16} />
+                      Share note
+                    </>
+                  )}
+                </button>
+
+              </div>
+
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
 
       {/* Delete Confirmation */}
       <AnimatePresence>

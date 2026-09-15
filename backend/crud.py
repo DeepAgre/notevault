@@ -1,4 +1,4 @@
-from models import User, Note
+from models import User, Note, NoteShare
 from schemas import NoteCreate, NoteUpdate, UserRegister, UserLogin
 from auth import hash_password, verify_password, create_access_token
 from fastapi import HTTPException
@@ -422,3 +422,74 @@ def get_dashboard_data(db, current_user):
         "notes": get_notes(db, current_user),
         "stats": get_note_stats(db, current_user),
     }
+
+def share_note(db: Session, current_user: User, note_id: int, recipient: str):
+    recipient = recipient.strip()
+
+    # Verify that the note belongs to the sender
+    original_note = db.query(Note).filter(
+        Note.id == note_id,
+        Note.owner_id == current_user.id,
+        Note.is_deleted == False
+    ).first()
+
+    if not original_note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    # Find recipient by username or email
+    recipient_user = db.query(User).filter(
+        (User.email == recipient.lower()) |
+        (User.username == recipient)
+    ).first()
+
+    if not recipient_user:
+        raise HTTPException(status_code=404, detail="Recipient not found")
+
+    # Prevent sharing with yourself
+    if recipient_user.id == current_user.id:
+        raise HTTPException(
+            status_code=400,
+            detail="You cannot share a note with yourself"
+        )
+
+    # Create an independent copy for the recipient
+    copied_note = Note(
+        title=original_note.title,
+        content=original_note.content,
+        owner_id=recipient_user.id,
+        pinned=False,
+        favorite=False,
+        is_deleted=False
+    )
+
+    db.add(copied_note)
+    db.commit()
+    db.refresh(copied_note)
+
+    # Keep a record of the sharing event
+    new_share = NoteShare(
+        note_id=original_note.id,
+        sender_id=current_user.id,
+        recipient_id=recipient_user.id
+    )
+
+    db.add(new_share)
+    db.commit()
+    db.refresh(new_share)
+
+    return {
+        "message": "Note copied and shared successfully",
+        "recipient": recipient_user.username,
+        "new_note_id": copied_note.id
+    }
+
+def get_shared_notes(db: Session, current_user: User):
+    shared_notes = db.query(Note).join(
+        NoteShare,
+        NoteShare.note_id == Note.id
+    ).filter(
+        NoteShare.recipient_id == current_user.id,
+        Note.is_deleted == False
+    ).all()
+
+    return shared_notes

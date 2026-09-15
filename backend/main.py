@@ -3,19 +3,10 @@ from fastapi import FastAPI, Depends, APIRouter
 from database import engine, Base, get_db
 from models import User
 from crud import (
-    create_note,
-    create_user,
-    delete_note,
-    get_notes,
-    get_trash,
-    login_user,
-    update_note,
-    toggle_pin_note,
-    toggle_favorite_note,
-    restore_note,
-    get_note_stats,
-    permanently_delete_note,
-    get_dashboard_data
+    create_note, create_user, delete_note, get_notes, get_trash, login_user,
+    update_note, toggle_pin_note, toggle_favorite_note, restore_note,
+    get_note_stats, permanently_delete_note, get_dashboard_data,
+    share_note,get_shared_notes
 )
 from sqlalchemy.orm import Session
 from auth import get_current_user
@@ -26,6 +17,7 @@ from schemas import (
     NoteCreate,
     NoteResponse,
     NoteUpdate,
+    NoteShareRequest,
     UserLogin,
     UserRegister,
     UserResponse
@@ -145,6 +137,30 @@ def note_stats(
     current_user: User = Depends(get_current_user)
 ):
     return get_note_stats(db, current_user)
+
+@router.post("/notes/{note_id}/share")
+def share_note_with_user(
+    note_id: int,
+    share_request: NoteShareRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return share_note(
+        db,
+        current_user,
+        note_id,
+        share_request.recipient
+    )
+
+@router.get("/notes/shared", response_model=list[NoteResponse])
+def get_shared_notes_for_user(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return get_shared_notes(
+        db,
+        current_user
+    )
 
 
 @router.put("/notes/{note_id}/pin", response_model=NoteResponse)
