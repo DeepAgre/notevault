@@ -774,7 +774,7 @@ useEffect(() => {
           </header>
 
           {/* Action row */}
-          <div className="mt-8 flex items-center justify-between">
+          <div className="mt-3 flex items-center justify-between lg:mt-8">
 
             <div className="flex items-center gap-2">
               {activeFilter !== "all" && (
