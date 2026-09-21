@@ -108,8 +108,11 @@ def create_note(
     note: NoteCreate,
     current_user: User
 ):
-    # Calculate emotional sentiment score (-1.0 to 1.0)
-    sentiment_score = analyzer.polarity_scores(f"{note.title} {note.content}")["compound"]
+    sentiment_score = 0.0
+    try:
+        sentiment_score = analyzer.polarity_scores(f"{note.title} {note.content}")["compound"]
+    except Exception:
+        sentiment_score = 0.0
 
     new_note = Note(
         title=note.title,
@@ -245,9 +248,11 @@ def update_note(
 
     existing_note.title = note.title
     existing_note.content = note.content
-    existing_note.sentiment_score = analyzer.polarity_scores(f"{note.title} {note.content}")["compound"]
+    try:
+        existing_note.sentiment_score = analyzer.polarity_scores(f"{note.title} {note.content}")["compound"]
+    except Exception:
+        existing_note.sentiment_score = 0.0
     existing_note.updated_at = datetime.now(timezone.utc)
-
     db.commit()
     db.refresh(existing_note)
 
