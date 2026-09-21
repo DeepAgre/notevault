@@ -68,8 +68,9 @@ const [sharing, setSharing] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [editingNoteId, setEditingNoteId] = useState(null);
+  const [writeMode, setWriteMode] = useState("guided"); // "guided" or "plain"
 
-  // Structured CBT fields
+  // Gentle guided journaling fields
   const [situation, setSituation] = useState("");
   const [negativeThought, setNegativeThought] = useState("");
   const [reframing, setReframing] = useState("");
@@ -181,15 +182,10 @@ useEffect(() => {
     setNegativeThought("");
     setReframing("");
     setActionPlan("");
+    setWriteMode("guided");
   };
 
-  const applyCbtTemplate = () => {
-    setTitle("CBT Thought Record & Reflection");
-    setContent(
-      "1. Situation / Trigger:\n- What event or deadline caused stress today?\n\n2. Automatic Negative Thought:\n- What immediate thought popped into my head?\n\n3. Evidence For & Against:\n- What is the objective reality? Is this thought 100% true?\n\n4. Balanced Re-evaluation:\n- How can I view this situation with compassion and calmness?"
-    );
-    toast.success("CBT reflection template loaded");
-  };
+  
 
   const openCreateModal = () => {
     setEditingNoteId(null);
@@ -199,19 +195,20 @@ useEffect(() => {
     setNegativeThought("");
     setReframing("");
     setActionPlan("");
+    setWriteMode("guided");
     setShowModal(true);
   };
 
   const createNewNote = async () => {
     let finalContent = content.trim();
 
-    // If structured fields are used, compile them into a professional journal format
-    if (situation || negativeThought || reframing || actionPlan) {
-      finalContent = `1. Situation / Trigger:\n${situation.trim() || "None specified"}\n\n2. Automatic Negative Thought:\n${negativeThought.trim() || "None specified"}\n\n3. Objective Evidence & Reframing:\n${reframing.trim() || "None specified"}\n\n4. Constructive Action Plan:\n${actionPlan.trim() || "None specified"}`;
+    // If guided fields are used, compile them into a comforting journal format
+    if (!finalContent && (situation || negativeThought || reframing || actionPlan)) {
+      finalContent = `What is on my mind:\n${situation.trim() || "Not specified"}\n\nHeavy thoughts I am carrying:\n${negativeThought.trim() || "Not specified"}\n\nLooking at it gently:\n${reframing.trim() || "Not specified"}\n\nSmall step forward:\n${actionPlan.trim() || "Not specified"}`;
     }
 
     if (!title.trim() || !finalContent) {
-      toast.error("Title and content sections are required");
+      toast.error("Please provide a title and your thoughts");
       return;
     }
 
@@ -1355,73 +1352,96 @@ useEffect(() => {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-[#625E59]">
-                    Journal Title
+                    Title
                   </label>
 
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Managing Academic Stress"
+                    placeholder="Give your thoughts a title"
                     autoFocus
                     className="w-full rounded-2xl border border-[#E5E0D8] bg-[#FCFBF8] px-4 py-3.5 text-[#302D2A] outline-none transition placeholder:text-[#B0AAA2] focus:border-[#B9AEF6] focus:ring-4 focus:ring-[#EEEAFE]"
                   />
                 </div>
 
-                {editingNoteId ? (
+                {!editingNoteId && (
+                  <div className="flex items-center justify-between rounded-xl bg-[#F4F1EA] p-1.5 border border-[#E6E1D6]">
+                    <button
+                      type="button"
+                      onClick={() => setWriteMode("guided")}
+                      className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${
+                        writeMode === "guided" ? "bg-white text-[#302D2A] shadow-sm" : "text-[#77716B] hover:text-[#302D2A]"
+                      }`}
+                    >
+                      Guided Reflection
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWriteMode("plain")}
+                      className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${
+                        writeMode === "plain" ? "bg-white text-[#302D2A] shadow-sm" : "text-[#77716B] hover:text-[#302D2A]"
+                      }`}
+                    >
+                      Plain Journaling
+                    </button>
+                  </div>
+                )}
+
+                {editingNoteId || writeMode === "plain" ? (
                   <div>
                     <label className="mb-2 block text-sm font-medium text-[#625E59]">
-                      Content
+                      Your Thoughts
                     </label>
 
                     <textarea
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      placeholder="Edit journal entry..."
+                      placeholder="Write freely whatever is on your mind..."
                       rows={9}
                       className="w-full resize-none rounded-2xl border border-[#E5E0D8] bg-[#FCFBF8] px-4 py-3.5 text-[#302D2A] outline-none transition placeholder:text-[#B0AAA2] focus:border-[#B9AEF6] focus:ring-4 focus:ring-[#EEEAFE]"
                     />
                   </div>
                 ) : (
                   <div className="space-y-4 rounded-2xl bg-[#F9F7F3] p-4 border border-[#EAE5DC]">
-                    <p className="text-xs font-semibold uppercase tracking-wider co text-[#77716B]">
-                      Cognitive Behavioral Therapy (CBT) Guided Framework
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#77716B]">
+                      Gentle Reflection Guide
                     </p>
 
                     <div>
                       <label className="mb-1 block text-xs font-medium text-[#625E59]">
-                        1. Situation / Trigger (What event caused stress?)
+                        1. What is weighing on your mind right now?
                       </label>
                       <input
                         type="text"
                         value={situation}
                         onChange={(e) => setSituation(e.target.value)}
-                        placeholder="e.g., Upcoming semester deadlines"
+                        placeholder="e.g., Feeling overwhelmed with college work"
                         className="w-full rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
                       />
                     </div>
 
                     <div>
                       <label className="mb-1 block text-xs font-medium text-[#625E59]">
-                        2. Automatic Negative Thought (What was your immediate thought?)
+                        2. What heavy thoughts are running through your head?
                       </label>
                       <input
                         type="text"
                         value={negativeThought}
                         onChange={(e) => setNegativeThought(e.target.value)}
-                        placeholder="e.g., I cannot finish everything in time"
+                        placeholder="e.g., I am falling behind and cannot catch up"
                         className="w-full rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
                       />
                     </div>
 
                     <div>
                       <label className="mb-1 block text-xs font-medium text-[#625E59]">
-                        3. Objective Evidence & Reframing (Is this thought 100% true?)
+                        3. Let us look at this gently. Is this entirely true?
                       </label>
                       <textarea
                         value={reframing}
                         onChange={(e) => setReframing(e.target.value)}
-                        placeholder="Examine objective facts and balance perspective..."
+                        placeholder="Write down a kinder, more balanced way to look at it..."
                         rows={3}
                         className="w-full resize-none rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
                       />
@@ -1429,12 +1449,12 @@ useEffect(() => {
 
                     <div>
                       <label className="mb-1 block text-xs font-medium text-[#625E59]">
-                        4. Constructive Action Plan (What is a calm next step?)
+                        4. What is one small, kind step you can take for yourself next?
                       </label>
                       <textarea
                         value={actionPlan}
                         onChange={(e) => setActionPlan(e.target.value)}
-                        placeholder="Break down the task into smaller steps..."
+                        placeholder="e.g., Take a 10-minute walk and focus on just one task..."
                         rows={3}
                         className="w-full resize-none rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
                       />
