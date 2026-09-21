@@ -41,6 +41,7 @@ class NoteResponse(BaseModel):
     favorite: bool
     is_deleted: bool
     deleted_at: datetime | None = None
+    sentiment_score: float | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

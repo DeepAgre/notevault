@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean, UniqueConstraint, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from database import Base
@@ -21,6 +21,7 @@ class Note(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     content = Column(Text, nullable=False)
+    
     owner_id = Column(
         Integer,
         ForeignKey("users.id"),
@@ -43,6 +44,7 @@ class Note(Base):
 
     is_deleted = Column(Boolean, default=False, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
+    sentiment_score = Column(Float, nullable=True)
 
     owner = relationship("User", back_populates="notes")
 

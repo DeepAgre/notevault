@@ -4,6 +4,9 @@ from auth import hash_password, verify_password, create_access_token
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+analyzer = SentimentIntensityAnalyzer()
 
 
 def create_user(db: Session, user: UserRegister):
@@ -105,11 +108,14 @@ def create_note(
     note: NoteCreate,
     current_user: User
 ):
+    # Calculate emotional sentiment score (-1.0 to 1.0)
+    sentiment_score = analyzer.polarity_scores(f"{note.title} {note.content}")["compound"]
 
     new_note = Note(
         title=note.title,
         content=note.content,
-        owner_id=current_user.id
+        owner_id=current_user.id,
+        sentiment_score=sentiment_score
     )
 
     db.add(new_note)
@@ -239,6 +245,7 @@ def update_note(
 
     existing_note.title = note.title
     existing_note.content = note.content
+    existing_note.sentiment_score = analyzer.polarity_scores(f"{note.title} {note.content}")["compound"]
     existing_note.updated_at = datetime.now(timezone.utc)
 
     db.commit()

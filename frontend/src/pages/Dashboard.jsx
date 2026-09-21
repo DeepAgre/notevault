@@ -89,6 +89,10 @@ const mobileMenuRef = useRef(null);
     trash_notes: 0,
   });
 
+  const [wellness, setWellness] = useState(null);
+  const [activeSound, setActiveSound] = useState(null);
+  const audioRef = useRef(null);
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -96,6 +100,23 @@ const mobileMenuRef = useRef(null);
     toast.success("Logged out");
     navigate("/");
   };
+
+  const toggleSound = (soundType, audioUrl) => {
+    if (activeSound === soundType) {
+      if (audioRef.current) audioRef.current.pause();
+      setActiveSound(null);
+      toast.success("Ambient sound stopped");
+    } else {
+      if (audioRef.current) audioRef.current.pause();
+      const audio = new Audio(audioUrl);
+      audio.loop = true;
+      audio.play().catch(() => {});
+      audioRef.current = audio;
+      setActiveSound(soundType);
+      toast.success(`Playing ${soundType} soundscape`);
+    }
+  };
+
 useEffect(() => {
   const handleOutsideClick = (event) => {
     // Close profile dropdown when clicking outside
@@ -128,10 +149,12 @@ useEffect(() => {
   const loadDashboard = async () => {
     try {
       const response = await api.get("/dashboard");
+      const wellnessRes = await api.get("/wellness/insights").catch(() => null);
 
       setNotes(response.data.notes);
       setUser(response.data.user);
       setStats(response.data.stats);
+      if (wellnessRes) setWellness(wellnessRes.data);
     } catch (error) {
       console.log(error);
       toast.error("Failed to load dashboard");
@@ -148,6 +171,14 @@ useEffect(() => {
     setEditingNoteId(null);
     setTitle("");
     setContent("");
+  };
+
+  const applyCbtTemplate = () => {
+    setTitle("CBT Thought Record & Reflection");
+    setContent(
+      "1. Situation / Trigger:\n- What event or deadline caused stress today?\n\n2. Automatic Negative Thought:\n- What immediate thought popped into my head?\n\n3. Evidence For & Against:\n- What is the objective reality? Is this thought 100% true?\n\n4. Balanced Re-evaluation:\n- How can I view this situation with compassion and calmness?"
+    );
+    toast.success("CBT reflection template loaded");
   };
 
   const openCreateModal = () => {
@@ -878,6 +909,55 @@ useEffect(() => {
 
 </div>
 
+{/* Wellness & Sensory Sanctuary Banner */}
+          <div className="mt-6 flex flex-col gap-4 rounded-[30px] border border-[#E9E4DB] bg-gradient-to-r from-[#F7F4EE] to-[#EFECE4] p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#7C6CF2]/10 text-[#7C6CF2]">
+                🌿
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8C857D]">
+                  Mindfulness & Burnout Support
+                </p>
+                <h2 className="mt-1 text-base font-bold text-[#302D2A]">
+                  {wellness ? wellness.status : "Calm & Balanced Space"}
+                </h2>
+                <p className="text-xs text-[#77716B]">
+                  {wellness ? `Analyzed ${wellness.total_analyzed} entries · Sentiment score: ${wellness.average_sentiment}` : "Take a deep breath and journal your thoughts safely."}
+                </p>
+              </div>
+            </div>
+
+            {/* Ambient Sound Toggles */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-[#77716B] mr-1">Ambient Sound:</span>
+              <button
+                onClick={() => toggleSound("Rain", "https://cdn.pixabay.com/download/audio/2021/09/06/audio_75c7423985.mp3?filename=gentle-rain-15258.mp3")}
+                className={`cursor-pointer rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                  activeSound === "Rain" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
+                }`}
+              >
+                🌧️ Rain
+              </button>
+              <button
+                onClick={() => toggleSound("Forest", "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=forest-birds-and-wind-6213.mp3")}
+                className={`cursor-pointer rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                  activeSound === "Forest" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
+                }`}
+              >
+                🌲 Forest
+              </button>
+              {activeSound && (
+                <button
+                  onClick={() => toggleSound(activeSound, "")}
+                  className="cursor-pointer rounded-xl bg-red-100 px-3 py-2 text-xs font-semibold text-[#B85D69] hover:bg-red-200"
+                >
+                  Stop Audio ⏹️
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Stats */}
 <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
 
@@ -1245,6 +1325,19 @@ useEffect(() => {
                 </button>
 
               </div>
+
+              {/* CBT Quick Template Button */}
+              {!editingNoteId && (
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={applyCbtTemplate}
+                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DCD5C6] bg-[#F7F5F0] px-3.5 py-2 text-xs font-semibold text-[#625E59] transition hover:bg-[#EFECE4]"
+                  >
+                    🧠 Load CBT Reflection Template
+                  </button>
+                </div>
+              )}
 
               <div className="mt-7 space-y-5">
 

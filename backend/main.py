@@ -6,7 +6,7 @@ from crud import (
     create_note, create_user, delete_note, get_notes, get_trash, login_user,
     update_note, toggle_pin_note, toggle_favorite_note, restore_note,
     get_note_stats, permanently_delete_note, get_dashboard_data,
-    share_note,get_shared_notes
+    share_note, get_shared_notes
 )
 from sqlalchemy.orm import Session
 from auth import get_current_user
@@ -188,6 +188,31 @@ def note_delete(
     current_user: User = Depends(get_current_user)
 ):
     return delete_note(db, current_user, note_id)
+
+
+@router.get("/wellness/insights")
+def wellness_insights(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    notes = get_notes(db, current_user)
+    if not notes:
+        return {"average_sentiment": 0.0, "status": "No notes yet", "total_analyzed": 0}
+    
+    scores = [n.sentiment_score for n in notes if n.sentiment_score is not None]
+    avg_score = sum(scores) / len(scores) if scores else 0.0
+
+    status = "Calm & Balanced"
+    if avg_score < -0.2:
+        status = "Carrying Heavy Stress"
+    elif avg_score > 0.3:
+        status = "Positive & Uplifted"
+
+    return {
+        "average_sentiment": round(avg_score, 2),
+        "status": status,
+        "total_analyzed": len(scores)
+    }
 
 
 app.include_router(router)
