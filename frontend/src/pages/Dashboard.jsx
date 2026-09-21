@@ -213,23 +213,21 @@ useEffect(() => {
     }
 
     try {
-      const response = await api.post("/notes", {
+      await api.post("/notes", {
         title: title.trim(),
         content: finalContent,
       });
 
-      setNotes((previousNotes) => [
-        ...previousNotes,
-        response.data,
-      ]);
+      // Re-fetch dashboard data and wellness insights instantly
+      const response = await api.get("/dashboard");
+      const wellnessRes = await api.get("/wellness/insights").catch(() => null);
 
-      setStats((previousStats) => ({
-        ...previousStats,
-        total_notes: previousStats.total_notes + 1,
-      }));
+      setNotes(response.data.notes);
+      setStats(response.data.stats);
+      if (wellnessRes) setWellness(wellnessRes.data);
 
       resetEditor();
-      toast.success("Note created");
+      toast.success("Note created and wellness insights updated");
     } catch (error) {
       console.log(error);
       toast.error("Failed to create note");
