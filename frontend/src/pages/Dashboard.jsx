@@ -69,6 +69,12 @@ const [sharing, setSharing] = useState(false);
   const [content, setContent] = useState("");
   const [editingNoteId, setEditingNoteId] = useState(null);
 
+  // Structured CBT fields
+  const [situation, setSituation] = useState("");
+  const [negativeThought, setNegativeThought] = useState("");
+  const [reframing, setReframing] = useState("");
+  const [actionPlan, setActionPlan] = useState("");
+
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
   const [activeFilter, setActiveFilter] = useState("all");
@@ -171,6 +177,10 @@ useEffect(() => {
     setEditingNoteId(null);
     setTitle("");
     setContent("");
+    setSituation("");
+    setNegativeThought("");
+    setReframing("");
+    setActionPlan("");
   };
 
   const applyCbtTemplate = () => {
@@ -185,19 +195,30 @@ useEffect(() => {
     setEditingNoteId(null);
     setTitle("");
     setContent("");
+    setSituation("");
+    setNegativeThought("");
+    setReframing("");
+    setActionPlan("");
     setShowModal(true);
   };
 
   const createNewNote = async () => {
-    if (!title.trim() || !content.trim()) {
-      toast.error("Title and content are required");
+    let finalContent = content.trim();
+
+    // If structured fields are used, compile them into a professional journal format
+    if (situation || negativeThought || reframing || actionPlan) {
+      finalContent = `1. Situation / Trigger:\n${situation.trim() || "None specified"}\n\n2. Automatic Negative Thought:\n${negativeThought.trim() || "None specified"}\n\n3. Objective Evidence & Reframing:\n${reframing.trim() || "None specified"}\n\n4. Constructive Action Plan:\n${actionPlan.trim() || "None specified"}`;
+    }
+
+    if (!title.trim() || !finalContent) {
+      toast.error("Title and content sections are required");
       return;
     }
 
     try {
       const response = await api.post("/notes", {
         title: title.trim(),
-        content: content.trim(),
+        content: finalContent,
       });
 
       setNotes((previousNotes) => [
@@ -252,6 +273,10 @@ useEffect(() => {
     setEditingNoteId(note.id);
     setTitle(note.title);
     setContent(note.content);
+    setSituation("");
+    setNegativeThought("");
+    setReframing("");
+    setActionPlan("");
     setShowModal(true);
   };
 
@@ -913,31 +938,31 @@ useEffect(() => {
           <div className="mt-6 flex flex-col gap-4 rounded-[30px] border border-[#E9E4DB] bg-gradient-to-r from-[#F7F4EE] to-[#EFECE4] p-6 shadow-sm md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#7C6CF2]/10 text-[#7C6CF2]">
-                🌿
+                <FileText size={22} />
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8C857D]">
-                  Mindfulness & Burnout Support
+                  Clinical Wellness & Burnout Support
                 </p>
                 <h2 className="mt-1 text-base font-bold text-[#302D2A]">
-                  {wellness ? wellness.status : "Calm & Balanced Space"}
+                  {wellness ? wellness.status : "Therapeutic Journaling Space"}
                 </h2>
                 <p className="text-xs text-[#77716B]">
-                  {wellness ? `Analyzed ${wellness.total_analyzed} entries · Sentiment score: ${wellness.average_sentiment}` : "Take a deep breath and journal your thoughts safely."}
+                  {wellness ? `Evaluated ${wellness.total_analyzed} entries · Emotional Valence: ${wellness.average_sentiment}` : "Structured reflection environment for academic stress management."}
                 </p>
               </div>
             </div>
 
             {/* Ambient Sound Toggles */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-[#77716B] mr-1">Ambient Sound:</span>
+              <span className="text-xs font-medium text-[#77716B] mr-1">Acoustic Therapy:</span>
               <button
                 onClick={() => toggleSound("Rain", "https://cdn.pixabay.com/download/audio/2021/09/06/audio_75c7423985.mp3?filename=gentle-rain-15258.mp3")}
                 className={`cursor-pointer rounded-xl px-3 py-2 text-xs font-semibold transition ${
                   activeSound === "Rain" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
                 }`}
               >
-                🌧️ Rain
+                Rainfall
               </button>
               <button
                 onClick={() => toggleSound("Forest", "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=forest-birds-and-wind-6213.mp3")}
@@ -945,14 +970,14 @@ useEffect(() => {
                   activeSound === "Forest" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
                 }`}
               >
-                🌲 Forest
+                Forest Ambient
               </button>
               {activeSound && (
                 <button
                   onClick={() => toggleSound(activeSound, "")}
                   className="cursor-pointer rounded-xl bg-red-100 px-3 py-2 text-xs font-semibold text-[#B85D69] hover:bg-red-200"
                 >
-                  Stop Audio ⏹️
+                  Mute Audio
                 </button>
               )}
             </div>
@@ -1326,49 +1351,96 @@ useEffect(() => {
 
               </div>
 
-              {/* CBT Quick Template Button */}
-              {!editingNoteId && (
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    onClick={applyCbtTemplate}
-                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#DCD5C6] bg-[#F7F5F0] px-3.5 py-2 text-xs font-semibold text-[#625E59] transition hover:bg-[#EFECE4]"
-                  >
-                    🧠 Load CBT Reflection Template
-                  </button>
-                </div>
-              )}
-
-              <div className="mt-7 space-y-5">
+              <div className="mt-7 space-y-5 max-h-[65vh] overflow-y-auto pr-1">
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-[#625E59]">
-                    Title
+                    Journal Title
                   </label>
 
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Note title"
+                    placeholder="e.g., Managing Academic Stress"
                     autoFocus
                     className="w-full rounded-2xl border border-[#E5E0D8] bg-[#FCFBF8] px-4 py-3.5 text-[#302D2A] outline-none transition placeholder:text-[#B0AAA2] focus:border-[#B9AEF6] focus:ring-4 focus:ring-[#EEEAFE]"
                   />
                 </div>
 
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-[#625E59]">
-                    Content
-                  </label>
+                {editingNoteId ? (
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-[#625E59]">
+                      Content
+                    </label>
 
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Start writing..."
-                    rows={9}
-                    className="w-full resize-none rounded-2xl border border-[#E5E0D8] bg-[#FCFBF8] px-4 py-3.5 text-[#302D2A] outline-none transition placeholder:text-[#B0AAA2] focus:border-[#B9AEF6] focus:ring-4 focus:ring-[#EEEAFE]"
-                  />
-                </div>
+                    <textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="Edit journal entry..."
+                      rows={9}
+                      className="w-full resize-none rounded-2xl border border-[#E5E0D8] bg-[#FCFBF8] px-4 py-3.5 text-[#302D2A] outline-none transition placeholder:text-[#B0AAA2] focus:border-[#B9AEF6] focus:ring-4 focus:ring-[#EEEAFE]"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-4 rounded-2xl bg-[#F9F7F3] p-4 border border-[#EAE5DC]">
+                    <p className="text-xs font-semibold uppercase tracking-wider co text-[#77716B]">
+                      Cognitive Behavioral Therapy (CBT) Guided Framework
+                    </p>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-[#625E59]">
+                        1. Situation / Trigger (What event caused stress?)
+                      </label>
+                      <input
+                        type="text"
+                        value={situation}
+                        onChange={(e) => setSituation(e.target.value)}
+                        placeholder="e.g., Upcoming semester deadlines"
+                        className="w-full rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-[#625E59]">
+                        2. Automatic Negative Thought (What was your immediate thought?)
+                      </label>
+                      <input
+                        type="text"
+                        value={negativeThought}
+                        onChange={(e) => setNegativeThought(e.target.value)}
+                        placeholder="e.g., I cannot finish everything in time"
+                        className="w-full rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-[#625E59]">
+                        3. Objective Evidence & Reframing (Is this thought 100% true?)
+                      </label>
+                      <textarea
+                        value={reframing}
+                        onChange={(e) => setReframing(e.target.value)}
+                        placeholder="Examine objective facts and balance perspective..."
+                        rows={3}
+                        className="w-full resize-none rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-[#625E59]">
+                        4. Constructive Action Plan (What is a calm next step?)
+                      </label>
+                      <textarea
+                        value={actionPlan}
+                        onChange={(e) => setActionPlan(e.target.value)}
+                        placeholder="Break down the task into smaller steps..."
+                        rows={3}
+                        className="w-full resize-none rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
+                      />
+                    </div>
+                  </div>
+                )}
 
               </div>
 
