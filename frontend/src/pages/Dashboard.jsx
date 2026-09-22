@@ -929,53 +929,111 @@ useEffect(() => {
 
 </div>
 
-{/* Wellness & Sensory Sanctuary Banner */}
-          <div className="mt-6 flex flex-col gap-4 rounded-[30px] border border-[#E9E4DB] bg-gradient-to-r from-[#F7F4EE] to-[#EFECE4] p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#7C6CF2]/10 text-[#7C6CF2]">
-                <FileText size={22} />
-              </div>
+{/* Expanded Wellness Insights & Compassionate Coaching Panel */}
+          <div className="mt-6 grid gap-5 lg:grid-cols-3">
+            
+            {/* Primary Emotional Trend & Advice Card */}
+            <div className="col-span-2 flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-gradient-to-br from-[#F8F5EE] to-[#EFEAE0] p-7 shadow-sm">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8C857D]">
-                  Clinical Wellness & Burnout Support
-                </p>
-                <h2 className="mt-1 text-base font-bold text-[#302D2A]">
-                  {wellness ? wellness.status : "Therapeutic Journaling Space"}
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#7C6CF2] shadow-sm">
+                    Emotional Wellness Insights
+                  </span>
+                  <span className="text-xs font-medium text-[#77716B]">
+                    {wellness ? `Evaluated Entries: ${wellness.total_analyzed}` : "Ready to listen"}
+                  </span>
+                </div>
+
+                <h2 className="mt-4 text-2xl font-bold tracking-tight text-[#302D2A]">
+                  {wellness && wellness.average_sentiment < -0.2
+                    ? "Noticing heavy stress lately. Be gentle with yourself."
+                    : wellness && wellness.average_sentiment > 0.3
+                    ? "You are carrying a wonderful sense of clarity and balance."
+                    : "Your safe space for emotional processing and calm reflection."}
                 </h2>
-                <p className="text-xs text-[#77716B]">
-                  {wellness ? `Evaluated ${wellness.total_analyzed} entries · Emotional Valence: ${wellness.average_sentiment}` : "Structured reflection environment for academic stress management."}
+
+                <p className="mt-2 text-sm leading-6 text-[#625E59]">
+                  {wellness && wellness.average_sentiment < -0.2
+                    ? "It is completely normal to feel overwhelmed by academic or personal demands. Remember that your worth is not tied to constant productivity. Take a slow breath, step away from your screen for a few minutes, and focus solely on your well-being right now."
+                    : wellness && wellness.average_sentiment > 0.3
+                    ? "Your recent reflections show a positive trajectory. Acknowledge the effort you have put into reframing difficult thoughts and taking care of your mental health."
+                    : "Writing down your thoughts helps lighten the cognitive load. Use the guided reflection tool whenever your mind feels cluttered or anxious."}
                 </p>
+              </div>
+
+              {/* Ambient Sound Controls inside Insights */}
+              <div className="mt-6 flex flex-wrap items-center justify-between border-t border-[#E4DFD5] pt-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-[#77716B]">Acoustic Therapy:</span>
+                  <button
+                    onClick={() => toggleSound("Rain", "https://cdn.pixabay.com/download/audio/2021/09/06/audio_75c7423985.mp3?filename=gentle-rain-15258.mp3")}
+                    className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                      activeSound === "Rain" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
+                    }`}
+                  >
+                    Rainfall
+                  </button>
+                  <button
+                    onClick={() => toggleSound("Forest", "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=forest-birds-and-wind-6213.mp3")}
+                    className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                      activeSound === "Forest" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
+                    }`}
+                  >
+                    Forest
+                  </button>
+                  {activeSound && (
+                    <button
+                      onClick={() => toggleSound(activeSound, "")}
+                      className="cursor-pointer rounded-xl bg-red-100 px-3 py-1.5 text-xs font-semibold text-[#B85D69] hover:bg-red-200"
+                    >
+                      Mute
+                    </button>
+                  )}
+                </div>
+
+                <span className="text-xs font-semibold text-[#7C6CF2]">
+                  {wellness ? `Valence Index: ${wellness.average_sentiment}` : "Score: 0.0"}
+                </span>
               </div>
             </div>
 
-            {/* Ambient Sound Toggles */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-[#77716B] mr-1">Acoustic Therapy:</span>
-              <button
-                onClick={() => toggleSound("Rain", "https://cdn.pixabay.com/download/audio/2021/09/06/audio_75c7423985.mp3?filename=gentle-rain-15258.mp3")}
-                className={`cursor-pointer rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                  activeSound === "Rain" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
-                }`}
-              >
-                Rainfall
-              </button>
-              <button
-                onClick={() => toggleSound("Forest", "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=forest-birds-and-wind-6213.mp3")}
-                className={`cursor-pointer rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                  activeSound === "Forest" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
-                }`}
-              >
-                Forest Ambient
-              </button>
-              {activeSound && (
-                <button
-                  onClick={() => toggleSound(activeSound, "")}
-                  className="cursor-pointer rounded-xl bg-red-100 px-3 py-2 text-xs font-semibold text-[#B85D69] hover:bg-red-200"
-                >
-                  Mute Audio
-                </button>
-              )}
+            {/* Gentle Uplift Tasks & Connection Card (Combatting Isolation & Burnout) */}
+            <div className="flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-white p-7 shadow-sm">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-[#7C6CF2]">
+                  Grounding & Anti-Loneliness
+                </p>
+                <h3 className="mt-2 text-lg font-bold text-[#302D2A]">
+                  Gentle Micro-Actions
+                </h3>
+                <p className="mt-1 text-xs text-[#77716B]">
+                  Small, zero-pressure steps to help you feel connected and centered when overwhelmed.
+                </p>
+
+                <ul className="mt-4 space-y-2.5 text-xs text-[#514B45]">
+                  <li className="flex items-center gap-2 rounded-xl bg-[#F9F7F3] p-2.5 border border-[#EFEAE0]">
+                    <span className="h-2 w-2 rounded-full bg-[#7C6CF2]" />
+                    Drink a glass of water and drop your shoulders.
+                  </li>
+                  <li className="flex items-center gap-2 rounded-xl bg-[#F9F7F3] p-2.5 border border-[#EFEAE0]">
+                    <span className="h-2 w-2 rounded-full bg-[#7C6CF2]" />
+                    Step outside or look out a window for 3 minutes.
+                  </li>
+                  <li className="flex items-center gap-2 rounded-xl bg-[#F9F7F3] p-2.5 border border-[#EFEAE0]">
+                    <span className="h-2 w-2 rounded-full bg-[#7C6CF2]" />
+                    Send a quick, casual message to a trusted friend.
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-5 border-t border-[#F0ECE1] pt-4">
+                <p className="text-[11px] text-[#9B948C] italic">
+                  "You do not have to carry everything all at once."
+                </p>
+              </div>
+
             </div>
+
           </div>
 
           {/* Stats */}
