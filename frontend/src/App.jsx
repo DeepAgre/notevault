@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import Trash from "./pages/Trash";
+import Resources from "./pages/Resources";
 
 function App() {
   return (
@@ -57,6 +58,8 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/resources" element={<Resources />} />
 
     </Routes>
   );
