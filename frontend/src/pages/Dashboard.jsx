@@ -2,7 +2,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Archive,
   Check,
   ChevronDown,
   FileText,
@@ -18,6 +17,7 @@ import {
   Trash2,
   X,
   Share2,
+  BookOpen,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
