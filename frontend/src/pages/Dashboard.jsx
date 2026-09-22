@@ -537,6 +537,14 @@ useEffect(() => {
               <Settings size={18} strokeWidth={1.9} />
               Settings
             </button>
+
+            <button
+              onClick={() => navigate("/resources")}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] transition hover:bg-[#F7F5F0] hover:text-[#292726]"
+            >
+              <BookOpen size={18} strokeWidth={1.9} />
+              Wellness Resources
+            </button>
           </div>
 
           <div className="mt-auto border-t border-[#EEEAE3] pt-5">
@@ -932,15 +940,12 @@ useEffect(() => {
 {/* Interactive Sprout Companion & Emotional Weather Sanctuary */}
           <div className="mt-6 grid gap-5 lg:grid-cols-3">
             
-            {/* Companion Card with Sprout Character & Comic Speech Bubble */}
+            {/* Companion Card with Sprout Character & Comic Cloud Head */}
             <div className="col-span-2 relative flex flex-col justify-between overflow-hidden rounded-[32px] border border-[#E9E4DB] bg-gradient-to-br from-[#F4F9F4] to-[#E9F2E9] p-7 shadow-sm">
               
-              {/* Decorative background aura */}
-              <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-[#D8F3DC] blur-2xl pointer-events-none" />
-
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-white/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#2D6A4F] shadow-sm">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#2D6A4F]">
                     Sprout, Your Wellness Companion
                   </span>
                   <span className="text-xs font-medium text-[#52796F]">
@@ -948,72 +953,69 @@ useEffect(() => {
                   </span>
                 </div>
 
-                {/* Companion Layout: Character + Comic Speech Bubble */}
-                <div className="mt-6 flex flex-col sm:flex-row items-center gap-6">
+                {/* Sprout with Comic Cloud Head Layout */}
+                <div className="mt-8 flex flex-col sm:flex-row items-center gap-6">
                   
-                  {/* Plant / Sprout Character Illustration */}
+                  {/* Sprout Character + Comic Cloud Head */}
                   <div className="relative flex shrink-0 flex-col items-center justify-center">
-                    <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-md border border-[#D8F3DC]">
+                    
+                    {/* Comic Cloud Head containing the tip */}
+                    <div className="absolute -top-24 w-56 rounded-3xl bg-white p-4 shadow-md border border-[#D8F3DC] text-center">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#52B788] mb-0.5">
+                        {wellness && wellness.average_sentiment < -0.2
+                          ? "Gentle Check-in"
+                          : wellness && wellness.average_sentiment > 0.3
+                          ? "Celebrating You"
+                          : "Daily Thought Tip"}
+                      </p>
+                      <h2 className="text-xs font-bold text-[#2D3142]">
+                        {wellness && wellness.average_sentiment < -0.2
+                          ? "I notice things feel heavy. You don't have to carry it alone."
+                          : wellness && wellness.average_sentiment > 0.3
+                          ? "Your mind looks bright today! Keep nurturing this calm energy."
+                          : "Remember to take breaks. Your pace is your own."}
+                      </h2>
+                    </div>
+
+                    {/* Plant Character */}
+                    <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-md border border-[#D8F3DC] mt-10">
                       <div className="relative flex flex-col items-center">
-                        {/* Sprout Leaves */}
                         <motion.div
                           animate={{ rotate: [-3, 3, -3] }}
                           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                           className="absolute -top-6 flex gap-1"
                         >
-                          <div className="h-6 w-4 rounded-full bg-[#52B788] origin-bottom-right -rotate-12" />
-                          <div className="h-6 w-4 rounded-full bg-[#40916C] origin-bottom-left rotate-12" />
+                          <div className="h-5 w-3.5 rounded-full bg-[#52B788] origin-bottom-right -rotate-12" />
+                          <div className="h-5 w-3.5 rounded-full bg-[#40916C] origin-bottom-left rotate-12" />
                         </motion.div>
-                        {/* Stem */}
-                        <div className="h-4 w-1.5 bg-[#2D6A4F] mt-2 rounded-full" />
-                        {/* Pot / Body */}
-                        <div className="h-10 w-12 rounded-b-xl bg-[#D4A373] shadow-inner flex items-center justify-center">
-                          {/* Face / Eyes */}
-                          <div className="flex gap-2 mb-1">
+                        <div className="h-3.5 w-1 bg-[#2D6A4F] mt-2 rounded-full" />
+                        <div className="h-8 w-10 rounded-b-xl bg-[#D4A373] shadow-inner flex items-center justify-center">
+                          <div className="flex gap-1.5 mb-1">
                             <div className="h-1.5 w-1.5 rounded-full bg-[#2D3142]" />
                             <div className="h-1.5 w-1.5 rounded-full bg-[#2D3142]" />
                           </div>
                         </div>
                       </div>
                     </div>
-                    <span className="mt-2 text-[11px] font-semibold text-[#40916C]">Sprout is listening</span>
+                    <span className="mt-2 text-[11px] font-semibold text-[#40916C]">Sprout</span>
                   </div>
 
-                  {/* Comic Book Style Thought Bubble */}
-                  <div className="relative flex-1 rounded-3xl bg-white p-5 shadow-sm border border-[#D8F3DC]">
-                    {/* Comic speech bubble tail pointer */}
-                    <div className="absolute -left-3 top-8 hidden sm:block h-0 w-0 border-y-8 border-y-transparent border-r-8 border-r-white" />
-                    
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#52B788] mb-1">
+                  {/* Encouraging message text */}
+                  <div className="flex-1 pl-0 sm:pl-4">
+                    <p className="text-sm font-medium text-[#2D3142] leading-relaxed">
                       {wellness && wellness.average_sentiment < -0.2
-                        ? "Gentle Check-in"
+                        ? "Take a slow, deep breath. Let us step away from the screen for a moment and focus solely on your comfort."
                         : wellness && wellness.average_sentiment > 0.3
-                        ? "Celebrating You"
-                        : "Daily Thought Tip"}
-                    </p>
-
-                    <h2 className="text-base font-bold text-[#2D3142]">
-                      {wellness && wellness.average_sentiment < -0.2
-                        ? "I notice things feel heavy right now. You don't have to carry it all by yourself."
-                        : wellness && wellness.average_sentiment > 0.3
-                        ? "Your mind looks bright today! Keep nurturing this beautiful calm energy."
-                        : "Remember to take breaks. Your pace is entirely your own."}
-                    </h2>
-
-                    <p className="mt-2 text-xs leading-relaxed text-[#52796F]">
-                      {wellness && wellness.average_sentiment < -0.2
-                        ? "Tip: Try closing your eyes for 60 seconds and taking 3 slow, deep breaths. Let's tackle just one tiny thing when you're ready."
-                        : wellness && wellness.average_sentiment > 0.3
-                        ? "Tip: Note down what made you feel good today so you can revisit it whenever shadows try to creep back in."
-                        : "Tip: Use the guided reflection tool if your thoughts feel tangled. I'll help you untangle them step by step."}
+                        ? "You are doing wonderfully. Notice how writing down your reflections helps bring mental clarity."
+                        : "Use the guided reflection tool whenever your thoughts feel heavy or tangled. I am always here to help you unpack them."}
                     </p>
                   </div>
 
                 </div>
               </div>
 
-              {/* Bottom Acoustic Bar inside Companion Panel */}
-              <div className="mt-6 flex flex-wrap items-center justify-between border-t border-[#D8F3DC] pt-4">
+              {/* Bottom Acoustic Bar (Valence score removed completely) */}
+              <div className="mt-8 flex flex-wrap items-center justify-between border-t border-[#D8F3DC] pt-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-[#52796F]">Companion Sounds:</span>
                   <button
@@ -1041,10 +1043,6 @@ useEffect(() => {
                     </button>
                   )}
                 </div>
-
-                <span className="text-xs font-semibold text-[#2D6A4F]">
-                  {wellness ? `Valence Score: ${wellness.average_sentiment}` : "Valence: 0.0"}
-                </span>
               </div>
             </div>
 
