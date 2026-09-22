@@ -929,86 +929,97 @@ useEffect(() => {
 
 </div>
 
-{/* Expanded Wellness Insights & Compassionate Coaching Panel */}
+{/* Interactive Sprout Companion & Emotional Weather Sanctuary */}
           <div className="mt-6 grid gap-5 lg:grid-cols-3">
             
-            {/* Primary Emotional Trend & Advice Card */}
-            <div className="col-span-2 flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-gradient-to-br from-[#F8F5EE] to-[#EFEAE0] p-7 shadow-sm">
+            {/* Companion Card with Sprout Character & Comic Speech Bubble */}
+            <div className="col-span-2 relative flex flex-col justify-between overflow-hidden rounded-[32px] border border-[#E9E4DB] bg-gradient-to-br from-[#F4F9F4] to-[#E9F2E9] p-7 shadow-sm">
+              
+              {/* Decorative background aura */}
+              <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-[#D8F3DC] blur-2xl pointer-events-none" />
+
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {/* Live Animated Mood Orb / Pulse Indicator */}
-                    <div className="relative flex h-3.5 w-3.5 items-center justify-center">
-                      <motion.div
-                        animate={{
-                          scale: [1, 1.6, 1],
-                          opacity: [0.6, 0.2, 0.6],
-                        }}
-                        transition={{
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                        className={`absolute h-full w-full rounded-full ${
-                          wellness && wellness.average_sentiment < -0.2
-                            ? "bg-[#8E9AAF]"
-                            : wellness && wellness.average_sentiment > 0.3
-                            ? "bg-[#52B788]"
-                            : "bg-[#7C6CF2]"
-                        }`}
-                      />
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          wellness && wellness.average_sentiment < -0.2
-                            ? "bg-[#6C757D]"
-                            : wellness && wellness.average_sentiment > 0.3
-                            ? "bg-[#2D6A4F]"
-                            : "bg-[#5A48F3]"
-                        }`}
-                      />
-                    </div>
-                    <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#7C6CF2] shadow-sm">
-                      Emotional Wellness Insights
-                    </span>
-                  </div>
-
-                  <span className="text-xs font-medium text-[#77716B]">
-                    {wellness ? `Evaluated Entries: ${wellness.total_analyzed}` : "Ready to listen"}
+                  <span className="rounded-full bg-white/80 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#2D6A4F] shadow-sm">
+                    Sprout, Your Wellness Companion
+                  </span>
+                  <span className="text-xs font-medium text-[#52796F]">
+                    {wellness ? `Entries Tracked: ${wellness.total_analyzed}` : "Waiting for your first note"}
                   </span>
                 </div>
 
-                {/* Animated Mood Status Heading */}
-                <motion.h2
-                  key={wellness ? wellness.status : "default"}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-4 text-2xl font-bold tracking-tight text-[#302D2A]"
-                >
-                  {wellness && wellness.average_sentiment < -0.2
-                    ? "Noticing heavy stress lately. Be gentle with yourself."
-                    : wellness && wellness.average_sentiment > 0.3
-                    ? "You are carrying a wonderful sense of clarity and balance."
-                    : "Your safe space for emotional processing and calm reflection."}
-                </motion.h2>
+                {/* Companion Layout: Character + Comic Speech Bubble */}
+                <div className="mt-6 flex flex-col sm:flex-row items-center gap-6">
+                  
+                  {/* Plant / Sprout Character Illustration */}
+                  <div className="relative flex shrink-0 flex-col items-center justify-center">
+                    <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-md border border-[#D8F3DC]">
+                      <div className="relative flex flex-col items-center">
+                        {/* Sprout Leaves */}
+                        <motion.div
+                          animate={{ rotate: [-3, 3, -3] }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                          className="absolute -top-6 flex gap-1"
+                        >
+                          <div className="h-6 w-4 rounded-full bg-[#52B788] origin-bottom-right -rotate-12" />
+                          <div className="h-6 w-4 rounded-full bg-[#40916C] origin-bottom-left rotate-12" />
+                        </motion.div>
+                        {/* Stem */}
+                        <div className="h-4 w-1.5 bg-[#2D6A4F] mt-2 rounded-full" />
+                        {/* Pot / Body */}
+                        <div className="h-10 w-12 rounded-b-xl bg-[#D4A373] shadow-inner flex items-center justify-center">
+                          {/* Face / Eyes */}
+                          <div className="flex gap-2 mb-1">
+                            <div className="h-1.5 w-1.5 rounded-full bg-[#2D3142]" />
+                            <div className="h-1.5 w-1.5 rounded-full bg-[#2D3142]" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="mt-2 text-[11px] font-semibold text-[#40916C]">Sprout is listening</span>
+                  </div>
 
-                <p className="mt-2 text-sm leading-6 text-[#625E59]">
-                  {wellness && wellness.average_sentiment < -0.2
-                    ? "It is completely normal to feel overwhelmed by academic or personal demands. Remember that your worth is not tied to constant productivity. Take a slow breath, step away from your screen for a few minutes, and focus solely on your well-being right now."
-                    : wellness && wellness.average_sentiment > 0.3
-                    ? "Your recent reflections show a positive trajectory. Acknowledge the effort you have put into reframing difficult thoughts and taking care of your mental health."
-                    : "Writing down your thoughts helps lighten the cognitive load. Use the guided reflection tool whenever your mind feels cluttered or anxious."}
-                </p>
+                  {/* Comic Book Style Thought Bubble */}
+                  <div className="relative flex-1 rounded-3xl bg-white p-5 shadow-sm border border-[#D8F3DC]">
+                    {/* Comic speech bubble tail pointer */}
+                    <div className="absolute -left-3 top-8 hidden sm:block h-0 w-0 border-y-8 border-y-transparent border-r-8 border-r-white" />
+                    
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#52B788] mb-1">
+                      {wellness && wellness.average_sentiment < -0.2
+                        ? "Gentle Check-in"
+                        : wellness && wellness.average_sentiment > 0.3
+                        ? "Celebrating You"
+                        : "Daily Thought Tip"}
+                    </p>
+
+                    <h2 className="text-base font-bold text-[#2D3142]">
+                      {wellness && wellness.average_sentiment < -0.2
+                        ? "I notice things feel heavy right now. You don't have to carry it all by yourself."
+                        : wellness && wellness.average_sentiment > 0.3
+                        ? "Your mind looks bright today! Keep nurturing this beautiful calm energy."
+                        : "Remember to take breaks. Your pace is entirely your own."}
+                    </h2>
+
+                    <p className="mt-2 text-xs leading-relaxed text-[#52796F]">
+                      {wellness && wellness.average_sentiment < -0.2
+                        ? "Tip: Try closing your eyes for 60 seconds and taking 3 slow, deep breaths. Let's tackle just one tiny thing when you're ready."
+                        : wellness && wellness.average_sentiment > 0.3
+                        ? "Tip: Note down what made you feel good today so you can revisit it whenever shadows try to creep back in."
+                        : "Tip: Use the guided reflection tool if your thoughts feel tangled. I'll help you untangle them step by step."}
+                    </p>
+                  </div>
+
+                </div>
               </div>
 
-              {/* Ambient Sound Controls inside Insights */}
-              <div className="mt-6 flex flex-wrap items-center justify-between border-t border-[#E4DFD5] pt-4">
+              {/* Bottom Acoustic Bar inside Companion Panel */}
+              <div className="mt-6 flex flex-wrap items-center justify-between border-t border-[#D8F3DC] pt-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-[#77716B]">Acoustic Therapy:</span>
+                  <span className="text-xs font-medium text-[#52796F]">Companion Sounds:</span>
                   <button
                     onClick={() => toggleSound("Rain", "https://cdn.pixabay.com/download/audio/2021/09/06/audio_75c7423985.mp3?filename=gentle-rain-15258.mp3")}
                     className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-                      activeSound === "Rain" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
+                      activeSound === "Rain" ? "bg-[#40916C] text-white" : "bg-white text-[#40916C] hover:bg-[#D8F3DC]"
                     }`}
                   >
                     Rainfall
@@ -1016,7 +1027,7 @@ useEffect(() => {
                   <button
                     onClick={() => toggleSound("Forest", "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=forest-birds-and-wind-6213.mp3")}
                     className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-                      activeSound === "Forest" ? "bg-[#7C6CF2] text-white" : "bg-white text-[#625E59] hover:bg-[#F0EDFF]"
+                      activeSound === "Forest" ? "bg-[#40916C] text-white" : "bg-white text-[#40916C] hover:bg-[#D8F3DC]"
                     }`}
                   >
                     Forest
@@ -1031,44 +1042,58 @@ useEffect(() => {
                   )}
                 </div>
 
-                <span className="text-xs font-semibold text-[#7C6CF2]">
-                  {wellness ? `Valence Index: ${wellness.average_sentiment}` : "Score: 0.0"}
+                <span className="text-xs font-semibold text-[#2D6A4F]">
+                  {wellness ? `Valence Score: ${wellness.average_sentiment}` : "Valence: 0.0"}
                 </span>
               </div>
             </div>
 
-            {/* Gentle Uplift Tasks & Connection Card (Combatting Isolation & Burnout) */}
+            {/* Emotional Weather Tracker & Grounding Card */}
             <div className="flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-white p-7 shadow-sm">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-widest text-[#7C6CF2]">
-                  Grounding & Anti-Loneliness
+                  Emotional Weather Tracker
                 </p>
-                <h3 className="mt-2 text-lg font-bold text-[#302D2A]">
-                  Gentle Micro-Actions
-                </h3>
-                <p className="mt-1 text-xs text-[#77716B]">
-                  Small, zero-pressure steps to help you feel connected and centered when overwhelmed.
-                </p>
+                <div className="mt-3 flex items-center gap-3 rounded-2xl bg-[#F7F5F0] p-4 border border-[#EFEAE0]">
+                  <div className="text-3xl">
+                    {wellness && wellness.average_sentiment < -0.2
+                      ? "🌧️"
+                      : wellness && wellness.average_sentiment > 0.3
+                      ? "☀️"
+                      : "⛅"}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#302D2A]">
+                      {wellness && wellness.average_sentiment < -0.2
+                        ? "Overcast & Stormy"
+                        : wellness && wellness.average_sentiment > 0.3
+                        ? "Clear & Sunny"
+                        : "Calm & Stable Skies"}
+                    </h3>
+                    <p className="text-xs text-[#77716B]">
+                      Based on your recent journal entries
+                    </p>
+                  </div>
+                </div>
 
-                <ul className="mt-4 space-y-2.5 text-xs text-[#514B45]">
+                <p className="mt-5 text-[11px] font-bold uppercase tracking-widest text-[#7C6CF2]">
+                  Anti-Loneliness Grounding
+                </p>
+                <ul className="mt-3 space-y-2 text-xs text-[#514B45]">
                   <li className="flex items-center gap-2 rounded-xl bg-[#F9F7F3] p-2.5 border border-[#EFEAE0]">
                     <span className="h-2 w-2 rounded-full bg-[#7C6CF2]" />
-                    Drink a glass of water and drop your shoulders.
+                    Drop your shoulders and take a slow breath.
                   </li>
                   <li className="flex items-center gap-2 rounded-xl bg-[#F9F7F3] p-2.5 border border-[#EFEAE0]">
                     <span className="h-2 w-2 rounded-full bg-[#7C6CF2]" />
-                    Step outside or look out a window for 3 minutes.
-                  </li>
-                  <li className="flex items-center gap-2 rounded-xl bg-[#F9F7F3] p-2.5 border border-[#EFEAE0]">
-                    <span className="h-2 w-2 rounded-full bg-[#7C6CF2]" />
-                    Send a quick, casual message to a trusted friend.
+                    Step away from the screen for 3 minutes.
                   </li>
                 </ul>
               </div>
 
               <div className="mt-5 border-t border-[#F0ECE1] pt-4">
                 <p className="text-[11px] text-[#9B948C] italic">
-                  "You do not have to carry everything all at once."
+                  "Every cloud eventually clears up. You're doing fine."
                 </p>
               </div>
 
