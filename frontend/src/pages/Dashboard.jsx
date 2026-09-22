@@ -936,21 +936,61 @@ useEffect(() => {
             <div className="col-span-2 flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-gradient-to-br from-[#F8F5EE] to-[#EFEAE0] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#7C6CF2] shadow-sm">
-                    Emotional Wellness Insights
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {/* Live Animated Mood Orb / Pulse Indicator */}
+                    <div className="relative flex h-3.5 w-3.5 items-center justify-center">
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.6, 1],
+                          opacity: [0.6, 0.2, 0.6],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                        className={`absolute h-full w-full rounded-full ${
+                          wellness && wellness.average_sentiment < -0.2
+                            ? "bg-[#8E9AAF]"
+                            : wellness && wellness.average_sentiment > 0.3
+                            ? "bg-[#52B788]"
+                            : "bg-[#7C6CF2]"
+                        }`}
+                      />
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          wellness && wellness.average_sentiment < -0.2
+                            ? "bg-[#6C757D]"
+                            : wellness && wellness.average_sentiment > 0.3
+                            ? "bg-[#2D6A4F]"
+                            : "bg-[#5A48F3]"
+                        }`}
+                      />
+                    </div>
+                    <span className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#7C6CF2] shadow-sm">
+                      Emotional Wellness Insights
+                    </span>
+                  </div>
+
                   <span className="text-xs font-medium text-[#77716B]">
                     {wellness ? `Evaluated Entries: ${wellness.total_analyzed}` : "Ready to listen"}
                   </span>
                 </div>
 
-                <h2 className="mt-4 text-2xl font-bold tracking-tight text-[#302D2A]">
+                {/* Animated Mood Status Heading */}
+                <motion.h2
+                  key={wellness ? wellness.status : "default"}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-4 text-2xl font-bold tracking-tight text-[#302D2A]"
+                >
                   {wellness && wellness.average_sentiment < -0.2
                     ? "Noticing heavy stress lately. Be gentle with yourself."
                     : wellness && wellness.average_sentiment > 0.3
                     ? "You are carrying a wonderful sense of clarity and balance."
                     : "Your safe space for emotional processing and calm reflection."}
-                </h2>
+                </motion.h2>
 
                 <p className="mt-2 text-sm leading-6 text-[#625E59]">
                   {wellness && wellness.average_sentiment < -0.2
