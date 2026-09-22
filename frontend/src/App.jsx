@@ -59,7 +59,14 @@ function App() {
         }
       />
 
-      <Route path="/resources" element={<Resources />} />
+      <Route
+        path="/resources"
+        element={
+          <ProtectedRoute>
+            <Resources />
+          </ProtectedRoute>
+        }
+      />
 
     </Routes>
   );

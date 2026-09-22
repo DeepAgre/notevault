@@ -767,10 +767,11 @@ function Dashboard() {
             </motion.button>
           </div>
 
-          {/* Interactive Sprout Companion & Weather Sanctuary (Fully visible cloud, rotating messages, NO valence score) */}
+          {/* Interactive Sprout Companion & Emotional Weather Sanctuary */}
           <div className="mt-6 grid gap-5 lg:grid-cols-3">
             
-            <div className="col-span-2 relative flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-gradient-to-br from-[#F4F9F4] to-[#E9F2E9] p-7 pt-24 shadow-sm">
+            {/* Companion Card with Sprout Character & Rotating Message Bubble */}
+            <div className="col-span-2 flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-gradient-to-br from-[#F4F9F4] to-[#E9F2E9] p-7 shadow-sm">
               
               <div>
                 <div className="flex items-center justify-between">
@@ -782,21 +783,11 @@ function Dashboard() {
                   </span>
                 </div>
 
-                <div className="mt-8 flex flex-col sm:flex-row items-center gap-6">
+                {/* Sprout and Message Cloud Layout */}
+                <div className="mt-6 flex flex-col sm:flex-row items-center gap-6">
                   
-                  <div className="relative flex shrink-0 flex-col items-center justify-center">
-                    
-                    {/* Comic Cloud Head (Fully visible, rotating messages every 3s) */}
-                    <div className="absolute -top-32 w-64 rounded-3xl bg-white p-4 shadow-lg border-2 border-[#D8F3DC] text-center">
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-3 w-3 rotate-45 bg-white border-b-2 border-r-2 border-[#D8F3DC]" />
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#52B788] mb-0.5">
-                        {upliftingMessages[activeTipIndex].title}
-                      </p>
-                      <h2 className="text-xs font-bold text-[#2D3142]">
-                        {upliftingMessages[activeTipIndex].text}
-                      </h2>
-                    </div>
-
+                  {/* Plant Character Container */}
+                  <div className="flex shrink-0 flex-col items-center justify-center">
                     <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-md border border-[#D8F3DC]">
                       <div className="relative flex flex-col items-center">
                         <motion.div
@@ -819,9 +810,16 @@ function Dashboard() {
                     <span className="mt-2 text-[11px] font-semibold text-[#40916C]">Sprout</span>
                   </div>
 
-                  <div className="flex-1 pl-0 sm:pl-4">
-                    <p className="text-sm font-medium text-[#2D3142] leading-relaxed">
-                      Use the guided reflection tool whenever your thoughts feel heavy or tangled. I am always here to help you unpack them step by step with total kindness.
+                  {/* Rotating Message Cloud (Inline & Clean) */}
+                  <div className="flex-1 w-full rounded-2xl bg-white p-5 shadow-sm border border-[#D8F3DC]">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#52B788] mb-1">
+                      {upliftingMessages[activeTipIndex].title}
+                    </p>
+                    <h2 className="text-sm font-bold text-[#2D3142]">
+                      {upliftingMessages[activeTipIndex].text}
+                    </h2>
+                    <p className="mt-2 text-xs leading-relaxed text-[#52796F]">
+                      Use the guided reflection tool whenever your thoughts feel heavy or tangled. I am here to help you unpack them step by step.
                     </p>
                   </div>
 
@@ -829,7 +827,7 @@ function Dashboard() {
               </div>
 
               {/* Bottom Acoustic Bar */}
-              <div className="mt-8 flex flex-wrap items-center justify-between border-t border-[#D8F3DC] pt-4">
+              <div className="mt-6 flex flex-wrap items-center justify-between border-t border-[#D8F3DC] pt-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-[#52796F]">Companion Sounds:</span>
                   <button
