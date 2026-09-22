@@ -858,52 +858,70 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Emotional Weather Tracker & Grounding Card */}
+            {/* Detailed Emotional Analytics & Wellness Insights Card */}
             <div className="flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-white p-7 shadow-sm">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-[#7C6CF2]">
-                  Emotional Weather Tracker
-                </p>
-                <div className="mt-3 flex items-center gap-3 rounded-2xl bg-[#F7F5F0] p-4 border border-[#EFEAE0]">
-                  <div className="text-3xl">
-                    {wellness && wellness.average_sentiment < -0.2
-                      ? "🌧️"
-                      : wellness && wellness.average_sentiment > 0.3
-                      ? "☀️"
-                      : "⛅"}
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#7C6CF2]">
+                    Deep Sentiment Analytics
+                  </p>
+                  <span className="rounded-full bg-[#F0EDFF] px-2.5 py-0.5 text-[10px] font-bold text-[#7C6CF2]">
+                    VADER Engine
+                  </span>
+                </div>
+
+                {/* Sentiment Meter Breakdown */}
+                <div className="mt-4 rounded-2xl bg-[#F7F5F0] p-4 border border-[#EFEAE0]">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[#302D2A] mb-2">
+                    <span>Average Sentiment Index</span>
+                    <span className="text-[#7C6CF2]">
+                      {wellness ? wellness.average_sentiment : "0.00"}
+                    </span>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#302D2A]">
+                  
+                  {/* Progress bar representing sentiment polarity */}
+                  <div className="h-2 w-full rounded-full bg-[#E5E0D5] overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        wellness && wellness.average_sentiment < -0.2
+                          ? "bg-[#B85D69]"
+                          : wellness && wellness.average_sentiment > 0.3
+                          ? "bg-[#52B788]"
+                          : "bg-[#7C6CF2]"
+                      }`}
+                      style={{
+                        width: wellness ? `${Math.min(100, Math.max(10, (wellness.average_sentiment + 1) * 50))}%` : "50%"
+                      }}
+                    />
+                  </div>
+
+                  <p className="mt-3 text-xs font-medium text-[#77716B]">
+                    Status: <span className="text-[#302D2A] font-bold capitalize">{wellness ? wellness.status || "Balanced" : "Waiting for entries"}</span>
+                  </p>
+                </div>
+
+                <div className="mt-5 space-y-3 text-xs text-[#514B45]">
+                  <div className="flex items-center justify-between rounded-xl bg-[#F9F7F3] p-3 border border-[#EFEAE0]">
+                    <span className="text-[#77716B]">Total Evaluated Entries</span>
+                    <span className="font-bold text-[#302D2A]">{wellness ? wellness.total_analyzed : 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-xl bg-[#F9F7F3] p-3 border border-[#EFEAE0]">
+                    <span className="text-[#77716B]">Dominant Mindset State</span>
+                    <span className="font-bold text-[#302D2A]">
                       {wellness && wellness.average_sentiment < -0.2
-                        ? "Overcast & Stormy"
+                        ? "High Stress / Heavy"
                         : wellness && wellness.average_sentiment > 0.3
-                        ? "Clear & Sunny"
-                        : "Calm & Stable Skies"}
-                    </h3>
-                    <p className="text-xs text-[#77716B]">
-                      Based on your recent journal entries
-                    </p>
+                        ? "Clear / Positive"
+                        : "Reflective / Calm"}
+                    </span>
                   </div>
                 </div>
 
-                <p className="mt-5 text-[11px] font-bold uppercase tracking-widest text-[#7C6CF2]">
-                  Anti-Loneliness Grounding
-                </p>
-                <ul className="mt-3 space-y-2 text-xs text-[#514B45]">
-                  <li className="flex items-center gap-2 rounded-xl bg-[#F9F7F3] p-2.5 border border-[#EFEAE0]">
-                    <span className="h-2 w-2 rounded-full bg-[#7C6CF2]" />
-                    Drop your shoulders and take a slow breath.
-                  </li>
-                  <li className="flex items-center gap-2 rounded-xl bg-[#F9F7F3] p-2.5 border border-[#EFEAE0]">
-                    <span className="h-2 w-2 rounded-full bg-[#7C6CF2]" />
-                    Step away from the screen for 3 minutes.
-                  </li>
-                </ul>
               </div>
 
               <div className="mt-5 border-t border-[#F0ECE1] pt-4">
-                <p className="text-[11px] text-[#9B948C] italic">
-                  "Every cloud eventually clears up. You're doing fine."
+                <p className="text-[11px] text-[#9B948C] italic text-center">
+                  "Self-awareness is the first step toward emotional resilience."
                 </p>
               </div>
 
