@@ -19,6 +19,10 @@ import {
   Share2,
   BookOpen,
   Info,
+  Flame,
+  Award,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -28,32 +32,34 @@ const NOTE_COLORS = [
     card: "bg-[#FFF4B8]",
     border: "border-[#F5E79B]",
     accent: "text-[#9A7B00]",
-    button: "bg-[#F7E88C] hover:bg-[#F2DF72]",
   },
   {
     card: "bg-[#CFF4FF]",
     border: "border-[#AEE7F5]",
     accent: "text-[#08758E]",
-    button: "bg-[#AEE9F7] hover:bg-[#94DFEF]",
   },
   {
     card: "bg-[#FFDDEB]",
     border: "border-[#F7BED5]",
     accent: "text-[#A63D67]",
-    button: "bg-[#F8C5D9] hover:bg-[#F2B2CC]",
   },
   {
     card: "bg-[#DDF7D8]",
     border: "border-[#BFE8B9]",
     accent: "text-[#397A35]",
-    button: "bg-[#C4ECC0] hover:bg-[#B1E4AC]",
   },
   {
     card: "bg-[#E9DEFF]",
     border: "border-[#D5C4F4]",
     accent: "text-[#6D4AA0]",
-    button: "bg-[#DCCBFA] hover:bg-[#CEB9F4]",
   },
+];
+
+const STREAK_BADGES = [
+  { id: "week", title: "7-Day Habit", daysRequired: 7, description: "Wrote reflections for a full week." },
+  { id: "three_months", title: "3-Month Dedication", daysRequired: 90, description: "Maintained a steady mindful habit for 3 months." },
+  { id: "six_months", title: "6-Month Mastery", daysRequired: 180, description: "Deep self-reflection practice over half a year." },
+  { id: "year", title: "1-Year Milestone", daysRequired: 365, description: "A full year of honoring your emotional well-being." },
 ];
 
 function Dashboard() {
@@ -81,12 +87,8 @@ function Dashboard() {
   const [sortOrder, setSortOrder] = useState("newest");
   const [activeFilter, setActiveFilter] = useState("all");
 
-  const [showInfoModal, setShowInfoModal] = useState(null); // Tracks which info tooltip is open
-
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const profileMenuRef = useRef(null);
-  const mobileProfileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const [noteToDelete, setNoteToDelete] = useState(null);
 
@@ -103,13 +105,22 @@ function Dashboard() {
   const [activeSound, setActiveSound] = useState(null);
   const audioRef = useRef(null);
 
-  // --- HUMAN EMOTIONAL SPECTRUM MAPPING (NO NUMBERS) ---
+  // --- STREAK & SPECTRUM CALCULATIONS ---
+  const streakDays = useMemo(() => {
+    if (!notes || notes.length === 0) return 0;
+    // Calculate unique days with entries
+    const daysSet = new Set(
+      notes.map((n) => new Date(n.created_at).toDateString())
+    );
+    return Math.max(1, daysSet.size);
+  }, [notes]);
+
   const emotionalSpectrum = useMemo(() => {
     if (!notes || notes.length === 0) {
       return {
+        position: 50, // Center neutral ball position percentage
         label: "Serene & Balanced",
-        description: "A peaceful starting space. Ready for your daily thoughts.",
-        progress: 50,
+        message: "A peaceful starting space. Ready for your daily thoughts.",
       };
     }
 
@@ -125,25 +136,26 @@ function Dashboard() {
       }
     });
 
-    const score = Math.min(100, Math.max(10, Math.round(50 + (soothingCount * 12) - (heavyCount * 8))));
+    // Score from 0 to 100 mapping to scale position
+    let score = Math.min(95, Math.max(10, Math.round(50 + (soothingCount * 15) - (heavyCount * 12))));
 
-    if (score >= 70) {
+    if (score >= 65) {
       return {
+        position: score,
         label: "Grounded & Light",
-        description: "You are navigating your week with self-kindness and balanced perspective.",
-        progress: score,
+        message: "You are navigating your reflections with a calm, balanced perspective. Keep honoring your pace.",
       };
-    } else if (score >= 40) {
+    } else if (score >= 35) {
       return {
+        position: score,
         label: "Reflecting & Processing",
-        description: "You are actively sorting through daily thoughts and giving yourself permission to pace.",
-        progress: score,
+        message: "You are actively sorting through your thoughts today. Give yourself grace as you process.",
       };
     } else {
       return {
+        position: score,
         label: "Carrying Heavy Weight",
-        description: "You've been holding onto demanding moments. Remember to breathe and take small pauses.",
-        progress: score,
+        message: "It looks like you are holding onto demanding thoughts right now. Remember that it's okay to rest and take a breather.",
       };
     }
   }, [notes]);
@@ -200,14 +212,6 @@ function Dashboard() {
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
-      if (
-        profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target) &&
-        mobileProfileMenuRef.current &&
-        !mobileProfileMenuRef.current.contains(event.target)
-      ) {
-        setShowProfileMenu(false);
-      }
       if (
         mobileMenuRef.current &&
         !mobileMenuRef.current.contains(event.target)
@@ -581,8 +585,8 @@ function Dashboard() {
         {/* Main Content Area */}
         <main className="min-w-0 flex-1 px-5 pb-12 pt-5 md:px-10 md:py-8 xl:px-14">
 
-          {/* Mobile top bar */}
-          <div className="mb-6 flex items-center justify-between md:hidden">
+          {/* Mobile top bar with working menu toggle */}
+          <div className="mb-6 flex items-center justify-between md:hidden" ref={mobileMenuRef}>
             <button
               onClick={() => navigate("/dashboard")}
               className="flex cursor-pointer items-center gap-2"
@@ -596,23 +600,87 @@ function Dashboard() {
             </button>
 
             <button
-              onClick={(event) => {
-                event.stopPropagation();
-                setShowMobileMenu((value) => !value);
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMobileMenu((prev) => !prev);
               }}
               className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-[#E8E3DB] bg-white text-[#625E59]"
             >
               {showMobileMenu ? <X size={19} /> : <Menu size={19} />}
             </button>
+
+            {/* Mobile Dropdown Drawer */}
+            <AnimatePresence>
+              {showMobileMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute left-4 right-4 top-16 z-50 rounded-3xl border border-[#E9E5DD] bg-white p-4 shadow-xl md:hidden"
+                >
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => { setShowMobileMenu(false); setActiveFilter("all"); navigate("/dashboard"); }}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"
+                    >
+                      <FileText size={18} /> All reflections
+                    </button>
+                    <button
+                      onClick={() => { setShowMobileMenu(false); setActiveFilter("pinned"); }}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"
+                    >
+                      <Pin size={18} /> Pinned
+                    </button>
+                    <button
+                      onClick={() => { setShowMobileMenu(false); setActiveFilter("favorite"); }}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"
+                    >
+                      <Heart size={18} /> Favorites
+                    </button>
+                    <button
+                      onClick={() => { setShowMobileMenu(false); navigate("/trash"); }}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"
+                    >
+                      <Trash2 size={18} /> Trash ({stats.trash_notes})
+                    </button>
+                    <button
+                      onClick={() => { setShowMobileMenu(false); navigate("/resources"); }}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"
+                    >
+                      <BookOpen size={18} /> Wellness Resources
+                    </button>
+                    <button
+                      onClick={() => { setShowMobileMenu(false); navigate("/settings"); }}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"
+                    >
+                      <Settings size={18} /> Settings
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#A35A62] hover:bg-[#FFF0F1]"
+                    >
+                      <LogOut size={18} /> Logout
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Header */}
+          {/* Header with Streak & Profile info */}
           <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-sm font-medium text-[#8C857D]">Your daily emotional reflection & decompression sanctuary</p>
-              <h1 className="mt-1 text-4xl font-bold tracking-tight text-[#292726] md:text-5xl">
-                Sanctuary
-              </h1>
+              <div className="flex items-center gap-3 mt-1">
+                <h1 className="text-4xl font-bold tracking-tight text-[#292726] md:text-5xl">
+                  Sanctuary
+                </h1>
+                {/* Active Streak Badge */}
+                <div className="flex items-center gap-1.5 rounded-full bg-[#FFF3E0] px-3.5 py-1.5 border border-[#FFE0B2] text-[#E65100] shadow-sm">
+                  <Flame size={16} fill="currentColor" />
+                  <span className="text-xs font-bold">{streakDays} Day Streak</span>
+                </div>
+              </div>
               {user && (
                 <p className="mt-2 text-sm text-[#99928A]">Welcome back, {user.username}</p>
               )}
@@ -668,7 +736,7 @@ function Dashboard() {
             </motion.button>
           </div>
 
-          {/* Companion & Human-Friendly Insights Section */}
+          {/* Companion & Emotional Spectrum Section */}
           <div className="mt-6 grid gap-5 lg:grid-cols-3">
             
             {/* Sprout Companion Card */}
@@ -788,33 +856,44 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Self-Compassion Index (Emotional Spectrum Card) */}
+            {/* Emotional Spectrum Scale Card (With Ball Indicator) */}
             <div className="flex flex-col justify-between rounded-[28px] border border-[#F5E79B] bg-gradient-to-br from-[#FFFDEB] to-[#FFF9D6] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <p className="text-[11px] font-bold uppercase tracking-widest text-[#9A7B00]">
-                      Self-Compassion Spectrum
+                      Emotional Spectrum Scale
                     </p>
                     <button onClick={() => setShowInfoModal("spectrum")} className="cursor-pointer text-[#9A7B00] hover:text-black"><Info size={14} /></button>
                   </div>
                 </div>
 
                 <div className="mt-4 rounded-2xl bg-white/80 p-4 border border-[#F5E79B]/60">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-[#302D2A]">Current State</span>
                     <span className="text-xs font-bold text-[#9A7B00] bg-[#FFF8D9] px-2.5 py-1 rounded-full">{emotionalSpectrum.label}</span>
                   </div>
 
-                  <div className="h-2.5 w-full rounded-full bg-[#F5E79B]/50 overflow-hidden my-3">
-                    <div
-                      className="h-full bg-[#D4A373] transition-all duration-500 rounded-full"
-                      style={{ width: `${emotionalSpectrum.progress}%` }}
-                    />
+                  {/* Spectrum Slider Scale with Ball Indicator */}
+                  <div className="relative my-6 px-2">
+                    <div className="flex justify-between text-[10px] font-medium text-[#8C857D] mb-2">
+                      <span>Carrying Weight</span>
+                      <span>Processing</span>
+                      <span>Grounded</span>
+                    </div>
+                    {/* Scale Track */}
+                    <div className="h-3 w-full rounded-full bg-gradient-to-r from-[#FADBD8] via-[#FDEBD0] to-[#D5F5E3] relative shadow-inner">
+                      {/* Moving Indicator Ball */}
+                      <div
+                        className="absolute top-1/2 -translate-y-1/2 -ml-3 h-6 w-6 rounded-full bg-[#D4A373] border-2 border-white shadow-md transition-all duration-500"
+                        style={{ left: `${emotionalSpectrum.position}%` }}
+                        title={`Spectrum position: ${emotionalSpectrum.label}`}
+                      />
+                    </div>
                   </div>
 
                   <p className="mt-2 text-[11px] leading-relaxed text-[#77716B]">
-                    {emotionalSpectrum.description}
+                    {emotionalSpectrum.message}
                   </p>
                 </div>
 
@@ -834,6 +913,57 @@ function Dashboard() {
             </div>
 
           </div>
+
+          {/* Writing Streak & Milestones Section */}
+          <section className="mt-8 rounded-[28px] border border-[#E7E2D9] bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FFF3E0] text-[#E65100]">
+                  <Award size={22} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-[#302D2A]">Writing Streak & Milestone Badges</h2>
+                  <p className="text-xs text-[#77716B]">Consistent daily reflections unlock special milestone badges.</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-bold text-[#E65100]">{streakDays}</span>
+                <p className="text-[11px] font-semibold text-[#77716B] uppercase">Days Active</p>
+              </div>
+            </div>
+
+            {/* Badges Grid */}
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {STREAK_BADGES.map((badge) => {
+                const isUnlocked = streakDays >= badge.daysRequired;
+
+                return (
+                  <div
+                    key={badge.id}
+                    className={`flex items-start gap-3.5 rounded-2xl border p-4 transition ${
+                      isUnlocked ? "border-[#FFE0B2] bg-[#FFF8F0]" : "border-[#EFECE6] bg-[#FAFAF8] opacity-70"
+                    }`}
+                  >
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                      isUnlocked ? "bg-[#FFE0B2] text-[#E65100]" : "bg-[#EFECE6] text-[#A39E93]"
+                    }`}>
+                      {isUnlocked ? <Unlock size={18} /> : <Lock size={18} />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-[#302D2A]">{badge.title}</h3>
+                        {isUnlocked && <span className="rounded-full bg-[#E65100] px-1.5 py-0.5 text-[9px] font-bold text-white">Unlocked</span>}
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-[#77716B]">{badge.description}</p>
+                      <p className="mt-2 text-[10px] font-semibold text-[#A39E93]">
+                        {isUnlocked ? "Completed!" : `Requires ${badge.daysRequired} days (${badge.daysRequired - streakDays} days left)`}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
           {/* Stats Bar */}
           <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -1012,7 +1142,7 @@ function Dashboard() {
                 {showInfoModal === "heavy" && "Understanding Heavy Moments"}
                 {showInfoModal === "reframes" && "About Gentle Reframes"}
                 {showInfoModal === "state" && "Sanctuary State"}
-                {showInfoModal === "spectrum" && "Self-Compassion Spectrum"}
+                {showInfoModal === "spectrum" && "Emotional Spectrum Scale"}
               </h2>
 
               <p className="mt-3 text-sm leading-relaxed text-[#625E59]">
@@ -1020,7 +1150,7 @@ function Dashboard() {
                 {showInfoModal === "heavy" && "This highlights when your entries carry demanding thoughts or exhaustion, reminding you to take things easy and honor your need for rest."}
                 {showInfoModal === "reframes" && "This measures your moments of self-kindness—when you gently look at challenging situations with patience rather than harsh self-criticism."}
                 {showInfoModal === "state" && "Your sanctuary state reflects a secure, quiet environment tailored for private emotional decompression and daily journaling."}
-                {showInfoModal === "spectrum" && "The spectrum moves gracefully based on your reflection entries, showing whether you are feeling grounded, processing complex thoughts, or carrying extra weight."}
+                {showInfoModal === "spectrum" && "The emotional spectrum scale uses a sliding indicator ball to map your daily reflection entries, showing whether you are feeling grounded, processing thoughts, or carrying extra weight."}
               </p>
 
               <div className="mt-7 flex justify-end">
