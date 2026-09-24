@@ -58,6 +58,7 @@ const NOTE_COLORS = [
 function Dashboard() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [savingNote, setSavingNote] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [viewingNote, setViewingNote] = useState(null);
@@ -99,32 +100,33 @@ function Dashboard() {
   const [activeSound, setActiveSound] = useState(null);
   const audioRef = useRef(null);
 
-  // --- DYNAMIC THERAPEUTIC METRICS COMPUTED FROM ACTUAL NOTES ---
+  // --- BALANCED EMOTIONAL SPECTRUM METRICS ---
   const dynamicMetrics = useMemo(() => {
     if (!notes || notes.length === 0) {
-      return { compassionScore: 50, heavyCount: 0, processingCount: 0, ratio: "0%" };
+      return { compassionScore: 50, heavyCount: 0, comfortingCount: 0, ratio: "0%" };
     }
 
     let heavyKeywords = ["fail", "exhaust", "drown", "alone", "stuck", "overwhelm", "zero", "behind", "anxiety", "hard", "tired", "deadline"];
     let heavyCount = 0;
-    let processingCount = 0;
+    let comfortingCount = 0;
 
     notes.forEach((n) => {
       const text = (n.title + " " + n.content).toLowerCase();
       const isHeavy = heavyKeywords.some((kw) => text.includes(kw));
       if (isHeavy) heavyCount++;
-      if (text.includes("gentle") || text.includes("step") || text.includes("breath") || text.includes("realiz")) {
-        processingCount++;
+      if (text.includes("gentle") || text.includes("step") || text.includes("breath") || text.includes("realiz") || text.includes("kind")) {
+        comfortingCount++;
       }
     });
 
-    let calculatedScore = Math.min(100, Math.max(20, Math.round((processingCount / Math.max(1, notes.length)) * 50 + (notes.length * 7))));
+    // Spectrum formula: Starts at 50% neutral baseline, shifts dynamically based on reflection quality
+    let calculatedScore = Math.min(95, Math.max(15, Math.round(50 + (comfortingCount * 10) - (heavyCount * 5))));
     
     return {
       compassionScore: calculatedScore,
       heavyCount,
-      processingCount,
-      ratio: `${Math.round((processingCount / Math.max(1, notes.length)) * 100)}%`,
+      comfortingCount,
+      ratio: `${Math.round((comfortingCount / Math.max(1, notes.length)) * 100)}%`,
     };
   }, [notes]);
 
@@ -133,15 +135,15 @@ function Dashboard() {
   const getTherapeuticMessages = (sentiment) => {
     if (sentiment !== null && sentiment < -0.05) {
       return [
-        { title: "Holding Space for Your Exhaustion", text: "Your notes show you're carrying heavy operational load. You don't have to fix everything right now." },
-        { title: "Cognitive Defusion Reminder", text: "Notice that you are having the *thought* of being overwhelmed—thoughts are weather, not permanent facts." },
-        { title: "Permission to Pause", text: "Burnout whispers that you aren't doing enough. Your mind is telling you it needs rest. Listen to it." }
+        { title: "Holding Space for Your Rest", text: "You don't have to figure everything out today. It's okay to just breathe." },
+        { title: "A Gentle Reminder", text: "Heavy days are temporary weather passing through. You are safe here." },
+        { title: "Permission to Pause", text: "Drop your shoulders and unclench your jaw. You've done enough for right now." }
       ];
     }
     return [
-      { title: "Steady Pacing", text: "You are showing up for yourself through honest reflection. That takes courage." },
-      { title: "Gentle Awareness", text: "Notice the rhythm of your breath right now. Drop your shoulders and unclench your jaw." },
-      { title: "Self-Kindness Check", text: "Treat yourself with the same patience you would offer a close friend facing this exact week." }
+      { title: "Steady Pacing", text: "You are showing up for yourself through honest daily reflection. That takes courage." },
+      { title: "Gentle Awareness", text: "Take a slow, deep breath and let today unfold at its own pace." },
+      { title: "Self-Kindness Check", text: "Treat yourself with the same patience you would offer a dear friend." }
     ];
   };
 
@@ -214,7 +216,7 @@ function Dashboard() {
         if (wellnessRes) setWellness(wellnessRes.data);
       } catch (error) {
         console.log(error);
-        toast.error("Failed to load dashboard");
+        toast.error("Failed to load sanctuary");
       } finally {
         setLoading(false);
       }
@@ -233,6 +235,7 @@ function Dashboard() {
     setReframing("");
     setActionPlan("");
     setWriteMode("guided");
+    setSavingNote(false);
   };
 
   const openCreateModal = () => {
@@ -248,6 +251,8 @@ function Dashboard() {
   };
 
   const createNewNote = async () => {
+    if (savingNote) return;
+
     let finalContent = content.trim();
 
     if (!finalContent && (situation || negativeThought || reframing || actionPlan)) {
@@ -258,6 +263,8 @@ function Dashboard() {
       toast.error("Please provide a title and your thoughts");
       return;
     }
+
+    setSavingNote(true);
 
     try {
       await api.post("/notes", {
@@ -276,15 +283,20 @@ function Dashboard() {
       toast.success("Reflection saved safely");
     } catch (error) {
       console.log(error);
-      toast.error("Failed to create note");
+      toast.error("Failed to save reflection");
+      setSavingNote(false);
     }
   };
 
   const updateNote = async () => {
+    if (savingNote) return;
+
     if (!title.trim() || !content.trim()) {
       toast.error("Title and content are required");
       return;
     }
+
+    setSavingNote(true);
 
     try {
       const response = await api.put(
@@ -302,10 +314,11 @@ function Dashboard() {
       );
 
       resetEditor();
-      toast.success("Note updated");
+      toast.success("Reflection updated");
     } catch (error) {
       console.log(error);
-      toast.error("Failed to update note");
+      toast.error("Failed to update reflection");
+      setSavingNote(false);
     }
   };
 
@@ -335,10 +348,10 @@ function Dashboard() {
         trash_notes: previousStats.trash_notes + 1,
       }));
 
-      toast.success("Note moved to trash");
+      toast.success("Moved to trash");
     } catch (error) {
       console.log(error);
-      toast.error("Failed to delete note");
+      toast.error("Failed to move to trash");
     }
   };
 
@@ -360,7 +373,6 @@ function Dashboard() {
       }));
     } catch (error) {
       console.log(error);
-      toast.error("Failed to update pin");
     }
   };
 
@@ -382,12 +394,11 @@ function Dashboard() {
       }));
     } catch (error) {
       console.log(error);
-      toast.error("Failed to update favorite");
     }
   };
 
   const shareNote = async () => {
-    if (!noteToShare) return;
+    if (!noteToShare || sharing) return;
 
     if (!shareRecipient.trim()) {
       toast.error("Enter a username or email");
@@ -404,12 +415,12 @@ function Dashboard() {
         }
       );
 
-      toast.success(`Note shared with ${response.data.recipient}`);
+      toast.success(`Shared with ${response.data.recipient}`);
       setNoteToShare(null);
       setShareRecipient("");
     } catch (error) {
       console.log(error);
-      const message = error.response?.data?.detail || "Failed to share note";
+      const message = error.response?.data?.detail || "Failed to share reflection";
       toast.error(message);
     } finally {
       setSharing(false);
@@ -454,9 +465,9 @@ function Dashboard() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-sm text-slate-500">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
-          <span>Loading your sanctuary...</span>
+        <div className="flex items-center gap-3 text-sm text-[#77716B]">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-[#7C6CF2]" />
+          <span>Opening your sanctuary...</span>
         </div>
       </div>
     );
@@ -580,7 +591,7 @@ function Dashboard() {
           {/* Header */}
           <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-medium text-[#8C857D]">Safe emotional decompression space</p>
+              <p className="text-sm font-medium text-[#8C857D]">Your daily emotional reflection & decompression sanctuary</p>
               <h1 className="mt-1 text-4xl font-bold tracking-tight text-[#292726] md:text-5xl">
                 Sanctuary
               </h1>
@@ -605,7 +616,7 @@ function Dashboard() {
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
-                  className="w-full appearance-none rounded-2xl border border-[#E7E2D9] bg-white/80 px-4 py-3.5 pr-10 text-sm text-[#625E59] outline-none transition focus:border-[#B8AEF8] focus:ring-4 focus:ring-[#EEEAFE] sm:w-auto"
+                  className="w-full cursor-pointer appearance-none rounded-2xl border border-[#E7E2D9] bg-white/80 px-4 py-3.5 pr-10 text-sm text-[#625E59] outline-none transition focus:border-[#B8AEF8] sm:w-auto"
                 >
                   <option value="newest">Newest</option>
                   <option value="oldest">Oldest</option>
@@ -639,7 +650,7 @@ function Dashboard() {
             </motion.button>
           </div>
 
-          {/* Fully Utilized Companion & Dynamic Live Analytics Section */}
+          {/* Companion & Human-Friendly Insights Section */}
           <div className="mt-6 grid gap-5 lg:grid-cols-3">
             
             {/* Sprout Companion Card */}
@@ -647,7 +658,7 @@ function Dashboard() {
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#116466]">
-                    Sprout, Your Therapeutic Companion
+                    Sprout, Your Companion
                   </span>
                   <span className="rounded-full bg-white/70 px-3 py-0.5 text-xs font-semibold text-[#116466]">
                     {notes.length} Total Entries Logged
@@ -687,24 +698,24 @@ function Dashboard() {
                       {currentMessages[activeTipIndex].text}
                     </h2>
                     <p className="mt-2 text-xs leading-relaxed text-[#52796F]">
-                      ACT Therapeutic Principle: You are the sky; your heavy thoughts and deadlines are just passing weather clouds.
+                      Gentle reminder: You are the sky; your heavy thoughts and deadlines are just passing weather clouds.
                     </p>
                   </div>
                 </div>
 
-                {/* Additional Live Metrics inside Sprout Card */}
+                {/* Warm Metrics */}
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl bg-white/70 p-3 border border-[#BEE3DB]/60">
-                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Heavy Entries</p>
+                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Heavy Moments</p>
                     <p className="mt-1 text-base font-bold text-[#116466]">{dynamicMetrics.heavyCount}</p>
                   </div>
                   <div className="rounded-2xl bg-white/70 p-3 border border-[#BEE3DB]/60">
-                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Reframing Ratio</p>
+                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Gentle Reframes</p>
                     <p className="mt-1 text-base font-bold text-[#116466]">{dynamicMetrics.ratio}</p>
                   </div>
                   <div className="col-span-2 sm:col-span-1 rounded-2xl bg-white/70 p-3 border border-[#BEE3DB]/60">
-                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Active Status</p>
-                    <p className="mt-1 text-xs font-bold text-[#2E8B57]">Holding Space</p>
+                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Sanctuary State</p>
+                    <p className="mt-1 text-xs font-bold text-[#2E8B57]">Safe & Open</p>
                   </div>
                 </div>
               </div>
@@ -741,7 +752,7 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Dynamic Compassion Index Card */}
+            {/* Self-Compassion Index Card */}
             <div className="flex flex-col justify-between rounded-[28px] border border-[#F5E79B] bg-gradient-to-br from-[#FFFDEB] to-[#FFF9D6] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
@@ -755,7 +766,7 @@ function Dashboard() {
 
                 <div className="mt-4 rounded-2xl bg-white/80 p-4 border border-[#F5E79B]/60">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-[#302D2A]">Pacing & Reframing Score</span>
+                    <span className="text-xs font-bold text-[#302D2A]">Self-Kindness Pace</span>
                     <span className="text-sm font-bold text-[#9A7B00]">{dynamicMetrics.compassionScore}%</span>
                   </div>
 
@@ -767,18 +778,18 @@ function Dashboard() {
                   </div>
 
                   <p className="mt-3 text-[11px] leading-relaxed text-[#77716B]">
-                    {dynamicMetrics.compassionScore < 50
-                      ? "Your notes indicate high stress load. Sprout has adjusted your pacing requirements—focus on micro-breaks today."
-                      : "You are actively balancing heavy thoughts with self-kindness reflections. Well done."}
+                    {notes.length === 0
+                      ? "Starts at neutral (50%). Your score flows naturally along the emotional spectrum as you reflect daily."
+                      : dynamicMetrics.compassionScore < 45
+                      ? "You are carrying a heavy load right now. Remember that resting is part of the process."
+                      : "You are balancing your thoughts with self-awareness and care. Well done."}
                   </p>
                 </div>
 
                 <div className="mt-4 space-y-2 rounded-2xl bg-white/50 p-3.5 border border-[#F5E79B]/40">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#9A7B00]">Therapeutic Insight</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#9A7B00]">Gentle Note</p>
                   <p className="text-[11px] leading-relaxed text-[#625B54]">
-                    {wellness && wellness.average_sentiment < -0.05
-                      ? "“You do not have to validate your exhaustion to anyone. Rest is a biological requirement, not a reward.”"
-                      : "“Emotions are data, not directives. Acknowledge the weight without letting it steer your life.”"}
+                    "You do not have to validate your exhaustion to anyone. Rest is a biological requirement, not a reward."
                   </p>
                 </div>
               </div>
@@ -844,7 +855,7 @@ function Dashboard() {
                 {!searchQuery && (
                   <button
                     onClick={openCreateModal}
-                    className="mt-5 flex items-center gap-2 rounded-xl bg-[#7C6CF2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#6E5EE5]"
+                    className="mt-5 flex cursor-pointer items-center gap-2 rounded-xl bg-[#7C6CF2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#6E5EE5]"
                   >
                     <Plus size={17} />
                     Create reflection
@@ -1005,7 +1016,7 @@ function Dashboard() {
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B948C]">{editingNoteId ? "Edit" : "New reflection"}</p>
                   <h2 className="mt-2 text-2xl font-bold text-[#302D2A]">{editingNoteId ? "Edit reflection" : "Guided Reflection"}</h2>
                 </div>
-                <button onClick={resetEditor} className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F7F5F0] text-[#77716B]">
+                <button onClick={resetEditor} className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-[#F7F5F0] text-[#77716B]">
                   <X size={18} />
                 </button>
               </div>
@@ -1028,14 +1039,14 @@ function Dashboard() {
                     <button
                       type="button"
                       onClick={() => setWriteMode("guided")}
-                      className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${writeMode === "guided" ? "bg-white text-[#302D2A] shadow-sm" : "text-[#77716B]"}`}
+                      className={`flex-1 cursor-pointer rounded-lg py-2 text-xs font-semibold transition ${writeMode === "guided" ? "bg-white text-[#302D2A] shadow-sm" : "text-[#77716B]"}`}
                     >
-                      ACT / CBT Guided Flow
+                      Guided Flow
                     </button>
                     <button
                       type="button"
                       onClick={() => setWriteMode("plain")}
-                      className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${writeMode === "plain" ? "bg-white text-[#302D2A] shadow-sm" : "text-[#77716B]"}`}
+                      className={`flex-1 cursor-pointer rounded-lg py-2 text-xs font-semibold transition ${writeMode === "plain" ? "bg-white text-[#302D2A] shadow-sm" : "text-[#77716B]"}`}
                     >
                       Free Journaling
                     </button>
@@ -1055,7 +1066,7 @@ function Dashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4 rounded-2xl bg-[#F9F7F3] p-4 border border-[#EAE5DC]">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#77716B]">ACT & CBT Decompression Guide</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#77716B]">Gentle Decompression Guide</p>
                     <div>
                       <label className="mb-1 block text-xs font-medium text-[#625E59]">1. What situation or burden is on your mind?</label>
                       <input
@@ -1101,12 +1112,25 @@ function Dashboard() {
               </div>
 
               <div className="mt-7 flex justify-end gap-2">
-                <button onClick={resetEditor} className="cursor-pointer rounded-xl px-5 py-3 text-sm font-medium text-[#77716B]">
+                <button onClick={resetEditor} disabled={savingNote} className="cursor-pointer rounded-xl px-5 py-3 text-sm font-medium text-[#77716B]">
                   Cancel
                 </button>
-                <button onClick={editingNoteId ? updateNote : createNewNote} className="cursor-pointer flex items-center gap-2 rounded-xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white">
-                  <Check size={17} />
-                  {editingNoteId ? "Save changes" : "Save reflection"}
+                <button
+                  onClick={editingNoteId ? updateNote : createNewNote}
+                  disabled={savingNote}
+                  className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white hover:bg-[#6E5EE5] disabled:opacity-60"
+                >
+                  {savingNote ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={17} />
+                      {editingNoteId ? "Save changes" : "Save reflection"}
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>
@@ -1133,7 +1157,7 @@ function Dashboard() {
                 <button onClick={() => setNoteToDelete(null)} className="cursor-pointer rounded-xl px-5 py-3 text-sm font-medium text-[#77716B]">
                   Cancel
                 </button>
-                <button onClick={async () => { await deleteNote(noteToDelete.id); setNoteToDelete(null); }} className="flex items-center gap-2 rounded-xl bg-[#C85C68] px-5 py-3 text-sm font-semibold text-white">
+                <button onClick={async () => { await deleteNote(noteToDelete.id); setNoteToDelete(null); }} className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#C85C68] px-5 py-3 text-sm font-semibold text-white">
                   <Trash2 size={16} /> Move to trash
                 </button>
               </div>
