@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import Trash from "./pages/Trash";
 import Resources from "./pages/Resources";
+import Reflections from "./pages/Reflections";
 
 function App() {
   return (
@@ -67,6 +68,8 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/reflections" element={<Reflections />} />
 
     </Routes>
   );
