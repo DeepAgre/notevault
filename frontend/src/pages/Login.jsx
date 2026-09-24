@@ -34,12 +34,11 @@ function Login() {
   };
 
   const handleLogin = async (e) => {
-    // 1. Prevent default form submission behavior immediately
     if (e && typeof e.preventDefault === "function") {
       e.preventDefault();
     }
 
-    // Reset previous errors before validating
+    // Clear previous errors before validating
     setErrorMessage("");
 
     const validationError = validateForm();
@@ -75,9 +74,8 @@ function Login() {
       let errorMsg = "Something went wrong. Please check your connection and try again.";
       
       if (error.response) {
-        // Server responded with a status code out of 2xx range
         if (error.response.status === 401) {
-          errorMsg = "Invalid email/username or password.";
+          errorMsg = "Invalid email/username or password. Please try again.";
         } else if (error.response.data && error.response.data.detail) {
           errorMsg = typeof error.response.data.detail === "string" 
             ? error.response.data.detail 
@@ -96,13 +94,13 @@ function Login() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#fffaf7] text-slate-900">
-      {/* Colorful background */}
+      {/* Colorful background blobs */}
       <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-cyan-300/40 blur-[110px]" />
       <div className="pointer-events-none absolute right-[-120px] top-20 h-[420px] w-[420px] rounded-full bg-pink-300/40 blur-[130px]" />
       <div className="pointer-events-none absolute bottom-[-160px] left-[20%] h-[420px] w-[420px] rounded-full bg-purple-300/30 blur-[130px]" />
       <div className="pointer-events-none absolute bottom-[-120px] right-[10%] h-[320px] w-[320px] rounded-full bg-yellow-200/50 blur-[110px]" />
 
-      {/* Main */}
+      {/* Main Container */}
       <div className="relative flex min-h-screen items-center justify-center px-5 py-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -110,7 +108,7 @@ function Login() {
           transition={{ duration: 0.6 }}
           className="w-full max-w-[430px]"
         >
-          {/* Logo */}
+          {/* Logo Heading */}
           <div className="mb-8 text-center">
             <h1 className="text-5xl font-black tracking-tight text-slate-900">
               Note<span className="text-cyan-500">Vault</span>
@@ -120,21 +118,22 @@ function Login() {
             </p>
           </div>
 
-          {/* Card */}
+          {/* Form Card */}
           <div className="rounded-[32px] border border-white/80 bg-white/75 p-7 shadow-[0_25px_80px_rgba(15,23,42,0.10)] backdrop-blur-2xl sm:p-9">
             <form onSubmit={handleLogin} className="space-y-5">
-              {/* Error */}
+              
+              {/* Persistent Error Message Box */}
               {errorMessage && (
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+                  className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 shadow-sm"
                 >
                   {errorMessage}
                 </motion.div>
               )}
 
-              {/* Email / Username */}
+              {/* Email / Username Input */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Email or Username
@@ -148,7 +147,10 @@ function Login() {
                     type="text"
                     placeholder="you@example.com or username"
                     value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
+                    onChange={(e) => {
+                      setIdentifier(e.target.value);
+                      if (errorMessage) setErrorMessage(""); // Clear error as user types
+                    }}
                     autoComplete="username"
                     disabled={loading}
                     className="w-full rounded-2xl border border-slate-200 bg-white/80 py-3.5 pl-11 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10 disabled:opacity-60"
@@ -156,7 +158,7 @@ function Login() {
                 </div>
               </div>
 
-              {/* Password */}
+              {/* Password Input */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Password
@@ -170,33 +172,26 @@ function Login() {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (errorMessage) setErrorMessage(""); // Clear error as user types
+                    }}
                     autoComplete="current-password"
                     disabled={loading}
                     className="w-full rounded-2xl border border-slate-200 bg-white/80 py-3.5 pl-11 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10 disabled:opacity-60"
                   />
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowPassword((previous) => !previous)
-                    }
+                    onClick={() => setShowPassword((previous) => !previous)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                    aria-label={
-                      showPassword
-                        ? "Hide password"
-                        : "Show password"
-                    }
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
-              {/* Sign in */}
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -219,7 +214,7 @@ function Login() {
               </button>
             </form>
 
-            {/* Register */}
+            {/* Switch to Register */}
             <div className="mt-7 border-t border-slate-200 pt-6 text-center">
               <p className="text-sm text-slate-500">
                 Don't have an account?
@@ -227,7 +222,7 @@ function Login() {
               <button
                 type="button"
                 onClick={() => navigate("/register")}
-                className="mt-2 text-sm font-semibold text-cyan-600 transition hover:text-cyan-500"
+                className="mt-2 text-sm font-semibold text-cyan-600 transition hover:text-cyan-500 cursor-pointer"
               >
                 Create an account
               </button>
