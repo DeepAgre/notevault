@@ -15,7 +15,7 @@ function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    // 1. Forcefully stop native form submission and page refresh immediately
+    // CRITICAL: Stop native form submission completely
     if (e) {
       if (typeof e.preventDefault === "function") e.preventDefault();
       if (typeof e.stopPropagation === "function") e.stopPropagation();
@@ -26,16 +26,8 @@ function Login() {
     const cleanIdentifier = identifier.trim();
     const cleanPassword = password;
 
-    // 2. Client-side validation checks
     if (!cleanIdentifier || !cleanPassword) {
       const msg = "Please enter your email/username and password.";
-      setErrorMessage(msg);
-      toast.error(msg);
-      return false;
-    }
-
-    if (cleanIdentifier.length < 2) {
-      const msg = "Please enter a valid email or username.";
       setErrorMessage(msg);
       toast.error(msg);
       return false;
@@ -58,45 +50,42 @@ function Login() {
         localStorage.setItem("token", response.data.access_token);
         toast.success("Signed in successfully!");
         navigate("/dashboard");
-      } else {
-        throw new Error("Invalid response structure from server.");
       }
     } catch (error) {
-      console.error("LOGIN ERROR CATCH:", error);
+      console.error("LOGIN ERROR:", error);
 
-      let errorMsg = "Invalid email/username or password. Please try again.";
+      let errorMsg = "Invalid email/username or password.";
 
       if (error.response) {
         if (error.response.status === 401) {
-          errorMsg = "Invalid email/username or password. Please try again.";
+          errorMsg = "Invalid email/username or password.";
         } else if (error.response.data && error.response.data.detail) {
           errorMsg = typeof error.response.data.detail === "string" 
             ? error.response.data.detail 
-            : "Invalid credentials provided.";
+            : "Invalid credentials.";
         }
       } else if (error.request) {
-        errorMsg = "Unable to reach the server. Please check your connection.";
+        errorMsg = "Unable to reach the server. Check your connection.";
       }
 
-      // Explicitly set error state so it renders in the UI box
+      // Display persistent error message and toast
       setErrorMessage(errorMsg);
       toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
 
-    return false; // Extra safety precaution to prevent default form action
+    return false;
   };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#fffaf7] text-slate-900">
-      {/* Colorful background blobs */}
+      {/* Background blobs */}
       <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-cyan-300/40 blur-[110px]" />
       <div className="pointer-events-none absolute right-[-120px] top-20 h-[420px] w-[420px] rounded-full bg-pink-300/40 blur-[130px]" />
       <div className="pointer-events-none absolute bottom-[-160px] left-[20%] h-[420px] w-[420px] rounded-full bg-purple-300/30 blur-[130px]" />
       <div className="pointer-events-none absolute bottom-[-120px] right-[10%] h-[320px] w-[320px] rounded-full bg-yellow-200/50 blur-[110px]" />
 
-      {/* Main Container */}
       <div className="relative flex min-h-screen items-center justify-center px-5 py-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -104,7 +93,6 @@ function Login() {
           transition={{ duration: 0.6 }}
           className="w-full max-w-[430px]"
         >
-          {/* Logo Heading */}
           <div className="mb-8 text-center">
             <h1 className="text-5xl font-black tracking-tight text-slate-900">
               Note<span className="text-cyan-500">Vault</span>
@@ -114,11 +102,10 @@ function Login() {
             </p>
           </div>
 
-          {/* Form Card */}
           <div className="rounded-[32px] border border-white/80 bg-white/75 p-7 shadow-[0_25px_80px_rgba(15,23,42,0.10)] backdrop-blur-2xl sm:p-9">
+            {/* Added onSubmit and onClick handling to completely prevent any fallback reload */}
             <form onSubmit={handleLogin} className="space-y-5" noValidate>
               
-              {/* Persistent Error Message Box */}
               {errorMessage && (
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
@@ -129,7 +116,6 @@ function Login() {
                 </motion.div>
               )}
 
-              {/* Email / Username Input */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Email or Username
@@ -154,7 +140,6 @@ function Login() {
                 </div>
               </div>
 
-              {/* Password Input */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Password
@@ -187,10 +172,10 @@ function Login() {
                 </div>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
+                onClick={handleLogin} // Double bound to ensure click event triggers handler without fallback reload
                 className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 font-semibold text-white shadow-lg shadow-slate-900/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
               >
                 {loading ? (
@@ -210,7 +195,6 @@ function Login() {
               </button>
             </form>
 
-            {/* Switch to Register */}
             <div className="mt-7 border-t border-slate-200 pt-6 text-center">
               <p className="text-sm text-slate-500">
                 Don't have an account?
