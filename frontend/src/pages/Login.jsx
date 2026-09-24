@@ -14,46 +14,40 @@ function Login() {
 
   const navigate = useNavigate();
 
-  const validateForm = () => {
+  const handleLogin = async (e) => {
+    // 1. Forcefully stop native form submission and page refresh immediately
+    if (e) {
+      if (typeof e.preventDefault === "function") e.preventDefault();
+      if (typeof e.stopPropagation === "function") e.stopPropagation();
+    }
+
+    setErrorMessage("");
+
     const cleanIdentifier = identifier.trim();
     const cleanPassword = password;
 
+    // 2. Client-side validation checks
     if (!cleanIdentifier || !cleanPassword) {
-      return "Please enter your email/username and password.";
+      const msg = "Please enter your email/username and password.";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return false;
     }
 
     if (cleanIdentifier.length < 2) {
-      return "Please enter a valid email or username.";
-    }
-
-    // Removed the strict < 6 character check for login 
-    // so incorrect passwords can properly hit the backend and return 401
-
-    return null;
-  };
-
-  const handleLogin = async (e) => {
-    if (e && typeof e.preventDefault === "function") {
-      e.preventDefault();
-    }
-
-    // Clear previous errors before validating
-    setErrorMessage("");
-
-    const validationError = validateForm();
-    if (validationError) {
-      setErrorMessage(validationError);
-      toast.error(validationError);
-      return;
+      const msg = "Please enter a valid email or username.";
+      setErrorMessage(msg);
+      toast.error(msg);
+      return false;
     }
 
     setLoading(true);
 
-    const formData = new URLSearchParams();
-    formData.append("username", identifier.trim());
-    formData.append("password", password);
-
     try {
+      const formData = new URLSearchParams();
+      formData.append("username", cleanIdentifier);
+      formData.append("password", cleanPassword);
+
       const response = await api.post("/login", formData, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -68,10 +62,10 @@ function Login() {
         throw new Error("Invalid response structure from server.");
       }
     } catch (error) {
-      console.error("LOGIN ERROR:", error);
+      console.error("LOGIN ERROR CATCH:", error);
 
-      let errorMsg = "Something went wrong. Please check your connection and try again.";
-      
+      let errorMsg = "Invalid email/username or password. Please try again.";
+
       if (error.response) {
         if (error.response.status === 401) {
           errorMsg = "Invalid email/username or password. Please try again.";
@@ -81,14 +75,17 @@ function Login() {
             : "Invalid credentials provided.";
         }
       } else if (error.request) {
-        errorMsg = "Unable to reach the server. Please verify your backend is running.";
+        errorMsg = "Unable to reach the server. Please check your connection.";
       }
 
+      // Explicitly set error state so it renders in the UI box
       setErrorMessage(errorMsg);
       toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
+
+    return false; // Extra safety precaution to prevent default form action
   };
 
   return (
@@ -119,7 +116,7 @@ function Login() {
 
           {/* Form Card */}
           <div className="rounded-[32px] border border-white/80 bg-white/75 p-7 shadow-[0_25px_80px_rgba(15,23,42,0.10)] backdrop-blur-2xl sm:p-9">
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form onSubmit={handleLogin} className="space-y-5" noValidate>
               
               {/* Persistent Error Message Box */}
               {errorMessage && (
@@ -182,7 +179,7 @@ function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((previous) => !previous)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -194,7 +191,7 @@ function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 font-semibold text-white shadow-lg shadow-slate-900/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 font-semibold text-white shadow-lg shadow-slate-900/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
               >
                 {loading ? (
                   <>
