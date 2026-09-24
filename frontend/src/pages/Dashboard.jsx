@@ -18,6 +18,7 @@ import {
   X,
   Share2,
   BookOpen,
+  Info,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -80,6 +81,8 @@ function Dashboard() {
   const [sortOrder, setSortOrder] = useState("newest");
   const [activeFilter, setActiveFilter] = useState("all");
 
+  const [showInfoModal, setShowInfoModal] = useState(null); // Tracks which info tooltip is open
+
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const profileMenuRef = useRef(null);
@@ -100,34 +103,49 @@ function Dashboard() {
   const [activeSound, setActiveSound] = useState(null);
   const audioRef = useRef(null);
 
-  // --- BALANCED EMOTIONAL SPECTRUM METRICS ---
-  const dynamicMetrics = useMemo(() => {
+  // --- HUMAN EMOTIONAL SPECTRUM MAPPING (NO NUMBERS) ---
+  const emotionalSpectrum = useMemo(() => {
     if (!notes || notes.length === 0) {
-      return { compassionScore: 50, heavyCount: 0, comfortingCount: 0, ratio: "0%" };
+      return {
+        label: "Serene & Balanced",
+        description: "A peaceful starting space. Ready for your daily thoughts.",
+        progress: 50,
+      };
     }
 
     let heavyKeywords = ["fail", "exhaust", "drown", "alone", "stuck", "overwhelm", "zero", "behind", "anxiety", "hard", "tired", "deadline"];
     let heavyCount = 0;
-    let comfortingCount = 0;
+    let soothingCount = 0;
 
     notes.forEach((n) => {
       const text = (n.title + " " + n.content).toLowerCase();
-      const isHeavy = heavyKeywords.some((kw) => text.includes(kw));
-      if (isHeavy) heavyCount++;
+      if (heavyKeywords.some((kw) => text.includes(kw))) heavyCount++;
       if (text.includes("gentle") || text.includes("step") || text.includes("breath") || text.includes("realiz") || text.includes("kind")) {
-        comfortingCount++;
+        soothingCount++;
       }
     });
 
-    // Spectrum formula: Starts at 50% neutral baseline, shifts dynamically based on reflection quality
-    let calculatedScore = Math.min(95, Math.max(15, Math.round(50 + (comfortingCount * 10) - (heavyCount * 5))));
-    
-    return {
-      compassionScore: calculatedScore,
-      heavyCount,
-      comfortingCount,
-      ratio: `${Math.round((comfortingCount / Math.max(1, notes.length)) * 100)}%`,
-    };
+    const score = Math.min(100, Math.max(10, Math.round(50 + (soothingCount * 12) - (heavyCount * 8))));
+
+    if (score >= 70) {
+      return {
+        label: "Grounded & Light",
+        description: "You are navigating your week with self-kindness and balanced perspective.",
+        progress: score,
+      };
+    } else if (score >= 40) {
+      return {
+        label: "Reflecting & Processing",
+        description: "You are actively sorting through daily thoughts and giving yourself permission to pace.",
+        progress: score,
+      };
+    } else {
+      return {
+        label: "Carrying Heavy Weight",
+        description: "You've been holding onto demanding moments. Remember to breathe and take small pauses.",
+        progress: score,
+      };
+    }
   }, [notes]);
 
   const [activeTipIndex, setActiveTipIndex] = useState(0);
@@ -657,9 +675,18 @@ function Dashboard() {
             <div className="col-span-2 flex flex-col justify-between rounded-[28px] border border-[#BEE3DB] bg-gradient-to-br from-[#E8F8F5] to-[#D1F2EB] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#116466]">
-                    Sprout, Your Companion
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#116466]">
+                      Sprout, Your Companion
+                    </span>
+                    <button
+                      onClick={() => setShowInfoModal("sprout")}
+                      className="cursor-pointer rounded-full p-1 text-[#116466] hover:bg-white/60 transition"
+                      title="Learn about Sprout"
+                    >
+                      <Info size={15} />
+                    </button>
+                  </div>
                   <span className="rounded-full bg-white/70 px-3 py-0.5 text-xs font-semibold text-[#116466]">
                     {notes.length} Total Entries Logged
                   </span>
@@ -706,15 +733,24 @@ function Dashboard() {
                 {/* Warm Metrics */}
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl bg-white/70 p-3 border border-[#BEE3DB]/60">
-                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Heavy Moments</p>
-                    <p className="mt-1 text-base font-bold text-[#116466]">{dynamicMetrics.heavyCount}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-semibold text-[#52796F] uppercase">Heavy Moments</p>
+                      <button onClick={() => setShowInfoModal("heavy")} className="cursor-pointer text-[#52796F] hover:text-[#116466]"><Info size={13} /></button>
+                    </div>
+                    <p className="mt-1 text-base font-bold text-[#116466]">{wellness && wellness.average_sentiment < -0.05 ? "Carrying Load" : "Balanced"}</p>
                   </div>
                   <div className="rounded-2xl bg-white/70 p-3 border border-[#BEE3DB]/60">
-                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Gentle Reframes</p>
-                    <p className="mt-1 text-base font-bold text-[#116466]">{dynamicMetrics.ratio}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-semibold text-[#52796F] uppercase">Gentle Reframes</p>
+                      <button onClick={() => setShowInfoModal("reframes")} className="cursor-pointer text-[#52796F] hover:text-[#116466]"><Info size={13} /></button>
+                    </div>
+                    <p className="mt-1 text-base font-bold text-[#116466]">Active</p>
                   </div>
                   <div className="col-span-2 sm:col-span-1 rounded-2xl bg-white/70 p-3 border border-[#BEE3DB]/60">
-                    <p className="text-[10px] font-semibold text-[#52796F] uppercase">Sanctuary State</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-semibold text-[#52796F] uppercase">Sanctuary State</p>
+                      <button onClick={() => setShowInfoModal("state")} className="cursor-pointer text-[#52796F] hover:text-[#116466]"><Info size={13} /></button>
+                    </div>
                     <p className="mt-1 text-xs font-bold text-[#2E8B57]">Safe & Open</p>
                   </div>
                 </div>
@@ -752,37 +788,33 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Self-Compassion Index Card */}
+            {/* Self-Compassion Index (Emotional Spectrum Card) */}
             <div className="flex flex-col justify-between rounded-[28px] border border-[#F5E79B] bg-gradient-to-br from-[#FFFDEB] to-[#FFF9D6] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#9A7B00]">
-                    Self-Compassion Index
-                  </p>
-                  <span className="rounded-full bg-white/70 px-2.5 py-0.5 text-[10px] font-bold text-[#9A7B00]">
-                    Live Computed
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#9A7B00]">
+                      Self-Compassion Spectrum
+                    </p>
+                    <button onClick={() => setShowInfoModal("spectrum")} className="cursor-pointer text-[#9A7B00] hover:text-black"><Info size={14} /></button>
+                  </div>
                 </div>
 
                 <div className="mt-4 rounded-2xl bg-white/80 p-4 border border-[#F5E79B]/60">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-[#302D2A]">Self-Kindness Pace</span>
-                    <span className="text-sm font-bold text-[#9A7B00]">{dynamicMetrics.compassionScore}%</span>
+                    <span className="text-xs font-bold text-[#302D2A]">Current State</span>
+                    <span className="text-xs font-bold text-[#9A7B00] bg-[#FFF8D9] px-2.5 py-1 rounded-full">{emotionalSpectrum.label}</span>
                   </div>
 
-                  <div className="h-2.5 w-full rounded-full bg-[#F5E79B]/50 overflow-hidden">
+                  <div className="h-2.5 w-full rounded-full bg-[#F5E79B]/50 overflow-hidden my-3">
                     <div
                       className="h-full bg-[#D4A373] transition-all duration-500 rounded-full"
-                      style={{ width: `${dynamicMetrics.compassionScore}%` }}
+                      style={{ width: `${emotionalSpectrum.progress}%` }}
                     />
                   </div>
 
-                  <p className="mt-3 text-[11px] leading-relaxed text-[#77716B]">
-                    {notes.length === 0
-                      ? "Starts at neutral (50%). Your score flows naturally along the emotional spectrum as you reflect daily."
-                      : dynamicMetrics.compassionScore < 45
-                      ? "You are carrying a heavy load right now. Remember that resting is part of the process."
-                      : "You are balancing your thoughts with self-awareness and care. Well done."}
+                  <p className="mt-2 text-[11px] leading-relaxed text-[#77716B]">
+                    {emotionalSpectrum.description}
                   </p>
                 </div>
 
@@ -796,7 +828,7 @@ function Dashboard() {
 
               <div className="mt-5 border-t border-[#F5E79B]/60 pt-3">
                 <p className="text-[10px] text-[#8C857D] italic text-center">
-                  Zero hardcoded stats · Powered by your reflections
+                  A safe, judgment-free space for your daily thoughts
                 </p>
               </div>
             </div>
@@ -954,6 +986,55 @@ function Dashboard() {
           </section>
         </main>
       </div>
+
+      {/* Info Tooltip Modal */}
+      <AnimatePresence>
+        {showInfoModal && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#3D3940]/30 p-4 backdrop-blur-sm" onClick={() => setShowInfoModal(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-[30px] bg-white p-7 shadow-2xl"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E8F8F5] text-[#116466]">
+                  <Info size={22} />
+                </div>
+                <button onClick={() => setShowInfoModal(null)} className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl bg-[#F7F5F0] text-[#77716B]">
+                  <X size={17} />
+                </button>
+              </div>
+
+              <h2 className="mt-5 text-xl font-bold text-[#302D2A]">
+                {showInfoModal === "sprout" && "About Sprout, Your Companion"}
+                {showInfoModal === "heavy" && "Understanding Heavy Moments"}
+                {showInfoModal === "reframes" && "About Gentle Reframes"}
+                {showInfoModal === "state" && "Sanctuary State"}
+                {showInfoModal === "spectrum" && "Self-Compassion Spectrum"}
+              </h2>
+
+              <p className="mt-3 text-sm leading-relaxed text-[#625E59]">
+                {showInfoModal === "sprout" && "Sprout is your gentle emotional companion here to offer a listening presence, soothing words, and a calm space whenever you log your thoughts."}
+                {showInfoModal === "heavy" && "This highlights when your entries carry demanding thoughts or exhaustion, reminding you to take things easy and honor your need for rest."}
+                {showInfoModal === "reframes" && "This measures your moments of self-kindness—when you gently look at challenging situations with patience rather than harsh self-criticism."}
+                {showInfoModal === "state" && "Your sanctuary state reflects a secure, quiet environment tailored for private emotional decompression and daily journaling."}
+                {showInfoModal === "spectrum" && "The spectrum moves gracefully based on your reflection entries, showing whether you are feeling grounded, processing complex thoughts, or carrying extra weight."}
+              </p>
+
+              <div className="mt-7 flex justify-end">
+                <button
+                  onClick={() => setShowInfoModal(null)}
+                  className="cursor-pointer rounded-xl bg-[#292726] px-5 py-2.5 text-sm font-medium text-white"
+                >
+                  Got it
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* View Modal */}
       <AnimatePresence>
