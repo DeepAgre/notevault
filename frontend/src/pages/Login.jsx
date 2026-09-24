@@ -16,7 +16,7 @@ function Login() {
 
   const validateForm = () => {
     const cleanIdentifier = identifier.trim();
-    const cleanPassword = password.trim();
+    const cleanPassword = password;
 
     if (!cleanIdentifier || !cleanPassword) {
       return "Please enter your email/username and password.";
@@ -34,7 +34,13 @@ function Login() {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    // 1. Prevent default form submission behavior immediately
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
+
+    // Reset previous errors before validating
+    setErrorMessage("");
 
     const validationError = validateForm();
     if (validationError) {
@@ -44,7 +50,6 @@ function Login() {
     }
 
     setLoading(true);
-    setErrorMessage("");
 
     const formData = new URLSearchParams();
     formData.append("username", identifier.trim());
@@ -57,22 +62,29 @@ function Login() {
         },
       });
 
-      localStorage.setItem(
-        "token",
-        response.data.access_token
-      );
-
-      toast.success("Signed in successfully!");
-      navigate("/dashboard");
-
+      if (response && response.data && response.data.access_token) {
+        localStorage.setItem("token", response.data.access_token);
+        toast.success("Signed in successfully!");
+        navigate("/dashboard");
+      } else {
+        throw new Error("Invalid response structure from server.");
+      }
     } catch (error) {
       console.error("LOGIN ERROR:", error);
 
-      let errorMsg = "Something went wrong. Please try again.";
-      if (error.response?.status === 401) {
-        errorMsg = "Invalid email/username or password.";
-      } else if (error.response?.data?.detail) {
-        errorMsg = error.response.data.detail;
+      let errorMsg = "Something went wrong. Please check your connection and try again.";
+      
+      if (error.response) {
+        // Server responded with a status code out of 2xx range
+        if (error.response.status === 401) {
+          errorMsg = "Invalid email/username or password.";
+        } else if (error.response.data && error.response.data.detail) {
+          errorMsg = typeof error.response.data.detail === "string" 
+            ? error.response.data.detail 
+            : "Invalid credentials provided.";
+        }
+      } else if (error.request) {
+        errorMsg = "Unable to reach the server. Please verify your backend is running.";
       }
 
       setErrorMessage(errorMsg);
