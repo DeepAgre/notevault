@@ -18,6 +18,10 @@ import {
   X,
   Share2,
   BookOpen,
+  Sparkles,
+  CloudRain,
+  Sun,
+  Cloud,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -68,9 +72,8 @@ function Dashboard() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [editingNoteId, setEditingNoteId] = useState(null);
-  const [writeMode, setWriteMode] = useState("guided"); // "guided" or "plain"
+  const [writeMode, setWriteMode] = useState("guided");
 
-  // Gentle guided journaling fields
   const [situation, setSituation] = useState("");
   const [negativeThought, setNegativeThought] = useState("");
   const [reframing, setReframing] = useState("");
@@ -100,21 +103,32 @@ function Dashboard() {
   const [activeSound, setActiveSound] = useState(null);
   const audioRef = useRef(null);
 
-  // Sprout rotating uplifting messages every 3 seconds
+  // Therapeutic Adaptive Messages based on actual sentiment rhythm
   const [activeTipIndex, setActiveTipIndex] = useState(0);
-  const upliftingMessages = [
-    { title: "You are doing great", text: "Take a slow, deep breath. Every small step forward counts." },
-    { title: "Gentle Reminder", text: "Your worth is not measured by constant productivity. Rest is valid." },
-    { title: "Here for you", text: "Whatever you are carrying right now, you don't have to carry it all alone." },
-    { title: "Breathe & Reset", text: "Drop your shoulders, unclench your jaw, and let today unfold at its own pace." }
-  ];
+  
+  const getTherapeuticMessages = (sentiment) => {
+    if (sentiment !== null && sentiment < -0.1) {
+      return [
+        { title: "Holding Space for You", text: "It is entirely valid to feel overwhelmed and exhausted. You don't have to fix everything today." },
+        { title: "Gentle Decompression", text: "Heavy days feel endless, but emotions move like weather. Allow yourself to rest without guilt." },
+        { title: "Self-Compassion First", text: "You are carrying a lot right now. Lower your expectations of yourself for the next hour just to breathe." }
+      ];
+    }
+    return [
+      { title: "You Are Doing Great", text: "Take a slow, deep breath. Every small step forward counts." },
+      { title: "Gentle Reminder", text: "Your worth is not measured by constant productivity. Rest is valid." },
+      { title: "Here For You", text: "Whatever you are carrying right now, you don't have to carry it all alone." }
+    ];
+  };
+
+  const currentMessages = getTherapeuticMessages(wellness ? wellness.average_sentiment : 0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveTipIndex((prev) => (prev + 1) % upliftingMessages.length);
-    }, 3000);
+      setActiveTipIndex((prev) => (prev + 1) % currentMessages.length);
+    }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [wellness]);
 
   const navigate = useNavigate();
 
@@ -150,7 +164,6 @@ function Dashboard() {
       ) {
         setShowProfileMenu(false);
       }
-
       if (
         mobileMenuRef.current &&
         !mobileMenuRef.current.contains(event.target)
@@ -236,7 +249,7 @@ function Dashboard() {
       if (wellnessRes) setWellness(wellnessRes.data);
 
       resetEditor();
-      toast.success("Note created and wellness insights updated");
+      toast.success("Reflection saved safely");
     } catch (error) {
       console.log(error);
       toast.error("Failed to create note");
@@ -419,7 +432,7 @@ function Dashboard() {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex items-center gap-3 text-sm text-slate-500">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-500" />
-          <span>Loading your notes...</span>
+          <span>Loading your sanctuary...</span>
         </div>
       </div>
     );
@@ -428,13 +441,13 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-[#FFFDF8] text-[#292726]">
 
-      <div className="pointer-events-none fixed -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-[#D9F5FF] blur-3xl" />
-      <div className="pointer-events-none fixed -bottom-40 -right-40 h-[420px] w-[420px] rounded-full bg-[#F0E5FF] blur-3xl" />
+      <div className="pointer-events-none fixed -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-[#D9F5FF] blur-3xl opacity-60" />
+      <div className="pointer-events-none fixed -bottom-40 -right-40 h-[420px] w-[420px] rounded-full bg-[#F0E5FF] blur-3xl opacity-60" />
 
       <div className="relative flex min-h-screen">
 
         {/* Desktop Sidebar */}
-        <aside className="hidden w-[250px] shrink-0 border-r border-[#EAE6DE] bg-white/80 px-5 py-7 backdrop-blur-xl md:flex md:flex-col">
+        <aside className="hidden w-[250px] shrink-0 border-r border-[#EAE6DE] bg-white/70 px-5 py-7 backdrop-blur-xl md:flex md:flex-col">
 
           <button
             onClick={() => {
@@ -484,7 +497,6 @@ function Dashboard() {
               <span className="text-xs text-[#AAA39A]">{stats.trash_notes}</span>
             </button>
 
-            {/* Wellness Resources positioned ABOVE Settings */}
             <button
               onClick={() => navigate("/resources")}
               className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] transition hover:bg-[#F7F5F0] hover:text-[#292726]"
@@ -541,120 +553,15 @@ function Dashboard() {
             </button>
           </div>
 
-          {/* Mobile menu */}
-          <AnimatePresence>
-            {showMobileMenu && (
-              <motion.div
-                ref={mobileMenuRef}
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{ duration: 0.18 }}
-                className="mb-6 overflow-hidden rounded-3xl border border-[#E9E5DD] bg-white p-2 shadow-xl shadow-black/[0.04] md:hidden"
-              >
-                <div className="px-3 pb-2 pt-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#AAA39A]">
-                    Workspace
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  {navItems.map((item) => {
-                    const Icon = item.icon;
-                    const active = activeFilter === item.id;
-
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setActiveFilter(item.id);
-                          setShowMobileMenu(false);
-                        }}
-                        className={`flex w-full cursor-pointer items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-medium transition ${
-                          active ? "bg-[#F0EDFF] text-[#6657D8]" : "text-[#625E59] hover:bg-[#F7F5F0]"
-                        }`}
-                      >
-                        <span className="flex items-center gap-3">
-                          <Icon size={18} strokeWidth={1.9} />
-                          {item.label}
-                        </span>
-                        <span className={`text-xs ${active ? "text-[#8174E5]" : "text-[#AAA39A]"}`}>
-                          {item.count}
-                        </span>
-                      </button>
-                    );
-                  })}
-
-                  <button
-                    onClick={() => {
-                      setShowMobileMenu(false);
-                      navigate("/trash");
-                    }}
-                    className="flex w-full cursor-pointer items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-medium text-[#625E59] transition hover:bg-[#F7F5F0]"
-                  >
-                    <span className="flex items-center gap-3">
-                      <Trash2 size={18} strokeWidth={1.9} />
-                      Trash
-                    </span>
-                    <span className="text-xs text-[#AAA39A]">{stats.trash_notes}</span>
-                  </button>
-                </div>
-
-                <div className="my-2 border-t border-[#EEEAE3]" />
-
-                <div className="px-3 pb-2 pt-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#AAA39A]">
-                    Account & Support
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      setShowMobileMenu(false);
-                      navigate("/resources");
-                    }}
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-[#625E59] transition hover:bg-[#F7F5F0]"
-                  >
-                    <BookOpen size={18} strokeWidth={1.9} />
-                    Wellness Resources
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setShowMobileMenu(false);
-                      navigate("/settings");
-                    }}
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-[#625E59] transition hover:bg-[#F7F5F0]"
-                  >
-                    <Settings size={18} strokeWidth={1.9} />
-                    Settings
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setShowMobileMenu(false);
-                      handleLogout();
-                    }}
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-[#A35A62] transition hover:bg-[#FFF1F2]"
-                  >
-                    <LogOut size={18} strokeWidth={1.9} />
-                    Logout
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Header */}
           <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-medium text-[#8C857D]">Your workspace</p>
+              <p className="text-sm font-medium text-[#8C857D]">Safe emotional reflection space</p>
               <h1 className="mt-1 text-4xl font-bold tracking-tight text-[#292726] md:text-5xl">
-                Notes
+                Sanctuary
               </h1>
               {user && (
-                <p className="mt-2 text-sm text-[#99928A]">{user.username}</p>
+                <p className="mt-2 text-sm text-[#99928A]">Welcome back, {user.username}</p>
               )}
             </div>
 
@@ -665,8 +572,8 @@ function Dashboard() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search notes"
-                  className="w-full rounded-2xl border border-[#E7E2D9] bg-white py-3.5 pl-11 pr-4 text-sm text-[#292726] outline-none transition placeholder:text-[#AAA39A] focus:border-[#B8AEF8] focus:ring-4 focus:ring-[#EEEAFE]"
+                  placeholder="Search thoughts"
+                  className="w-full rounded-2xl border border-[#E7E2D9] bg-white/80 py-3.5 pl-11 pr-4 text-sm text-[#292726] outline-none transition placeholder:text-[#AAA39A] focus:border-[#B8AEF8] focus:ring-4 focus:ring-[#EEEAFE]"
                 />
               </div>
 
@@ -674,59 +581,12 @@ function Dashboard() {
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
-                  className="w-full appearance-none rounded-2xl border border-[#E7E2D9] bg-white px-4 py-3.5 pr-10 text-sm text-[#625E59] outline-none transition focus:border-[#B8AEF8] focus:ring-4 focus:ring-[#EEEAFE] sm:w-auto"
+                  className="w-full appearance-none rounded-2xl border border-[#E7E2D9] bg-white/80 px-4 py-3.5 pr-10 text-sm text-[#625E59] outline-none transition focus:border-[#B8AEF8] focus:ring-4 focus:ring-[#EEEAFE] sm:w-auto"
                 >
                   <option value="newest">Newest</option>
                   <option value="oldest">Oldest</option>
                 </select>
                 <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#AAA39A]" />
-              </div>
-
-              <div ref={profileMenuRef} className="relative hidden lg:block">
-                <button
-                  onClick={() => setShowProfileMenu((value) => !value)}
-                  className="flex h-full cursor-pointer items-center gap-3 rounded-2xl border border-[#E7E2D9] bg-white px-3 py-2 transition hover:border-[#D7D0C7]"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFE0B8] text-sm font-bold text-[#9B651E]">
-                    {user?.username?.charAt(0)?.toUpperCase() || "U"}
-                  </div>
-                  <span className="hidden max-w-24 truncate text-sm font-medium text-[#4F4A45] sm:block">
-                    {user?.username || "Account"}
-                  </span>
-                  <ChevronDown size={15} className="text-[#AAA39A]" />
-                </button>
-
-                <AnimatePresence>
-                  {showProfileMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      className="absolute right-0 top-[calc(100%+8px)] z-40 w-56 rounded-2xl border border-[#E7E2D9] bg-white p-2 shadow-xl"
-                    >
-                      <div className="px-3 py-3.5">
-                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#AAA39A]">Account</p>
-                        <p className="truncate text-sm font-semibold text-[#3E3A36]">{user?.username}</p>
-                        <p className="mt-1 truncate text-xs text-[#9B948C]">{user?.email}</p>
-                      </div>
-                      <div className="my-1 border-t border-[#EEEAE3]" />
-                      <button
-                        onClick={() => { setShowProfileMenu(false); navigate("/settings"); }}
-                        className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#625E59] transition hover:bg-[#F7F5F0]"
-                      >
-                        <Settings size={17} />
-                        Settings
-                      </button>
-                      <button
-                        onClick={() => { setShowProfileMenu(false); handleLogout(); }}
-                        className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#A35A62] transition hover:bg-[#FFF1F2]"
-                      >
-                        <LogOut size={17} />
-                        Logout
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
             </div>
           </header>
@@ -734,18 +594,6 @@ function Dashboard() {
           {/* Action row */}
           <div className="mt-3 flex items-center justify-between gap-3 lg:mt-8">
             <div className="flex items-center gap-2">
-              <div ref={mobileProfileMenuRef} className="relative lg:hidden">
-                <button
-                  onClick={() => setShowProfileMenu((value) => !value)}
-                  className="flex h-11 cursor-pointer items-center gap-2 rounded-2xl border border-[#E7E2D9] bg-white px-3 transition hover:border-[#D7D0C7]"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFE0B8] text-sm font-bold text-[#9B651E]">
-                    {user?.username?.charAt(0)?.toUpperCase() || "U"}
-                  </div>
-                  <ChevronDown size={15} className="text-[#AAA39A]" />
-                </button>
-              </div>
-
               {activeFilter !== "all" && (
                 <button
                   onClick={() => setActiveFilter("all")}
@@ -763,42 +611,38 @@ function Dashboard() {
               className="flex cursor-pointer items-center gap-2 rounded-2xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white shadow-md shadow-[#7C6CF2]/20 transition hover:bg-[#6E5EE5]"
             >
               <Plus size={18} />
-              New note
+              New reflection
             </motion.button>
           </div>
 
-          {/* Interactive Sprout Companion & Emotional Weather Sanctuary */}
+          {/* Out-of-the-Box Pinterest-Styled Companion & Therapeutic Rhythm Cards */}
           <div className="mt-6 grid gap-5 lg:grid-cols-3">
             
-            {/* Companion Card with Sprout Character & Rotating Message Bubble */}
-            <div className="col-span-2 flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-gradient-to-br from-[#F4F9F4] to-[#E9F2E9] p-7 shadow-sm">
-              
+            {/* Sprout Companion Card (No Heavy Solid Box, Styled Like Note Cards) */}
+            <div className="col-span-2 flex flex-col justify-between rounded-[28px] border border-[#BEE3DB] bg-gradient-to-br from-[#E8F8F5] to-[#D1F2EB] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#2D6A4F]">
-                    Sprout, Your Wellness Companion
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#116466]">
+                    Sprout, Your Companion
                   </span>
-                  <span className="text-xs font-medium text-[#52796F]">
-                    {wellness ? `Entries Tracked: ${wellness.total_analyzed}` : "Waiting for your first note"}
+                  <span className="rounded-full bg-white/70 px-3 py-0.5 text-xs font-semibold text-[#116466]">
+                    {wellness ? `${wellness.total_analyzed} Reflections Logged` : "0 Reflections"}
                   </span>
                 </div>
 
-                {/* Sprout and Message Cloud Layout */}
-                <div className="mt-6 flex flex-col sm:flex-row items-center gap-6">
-                  
-                  {/* Plant Character Container */}
+                <div className="mt-5 flex flex-col sm:flex-row items-center gap-5">
                   <div className="flex shrink-0 flex-col items-center justify-center">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-md border border-[#D8F3DC]">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-sm border border-[#A2D9CE]">
                       <div className="relative flex flex-col items-center">
                         <motion.div
                           animate={{ rotate: [-3, 3, -3] }}
                           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                           className="absolute -top-6 flex gap-1"
                         >
-                          <div className="h-5 w-3.5 rounded-full bg-[#52B788] origin-bottom-right -rotate-12" />
-                          <div className="h-5 w-3.5 rounded-full bg-[#40916C] origin-bottom-left rotate-12" />
+                          <div className="h-5 w-3.5 rounded-full bg-[#2E8B57] origin-bottom-right -rotate-12" />
+                          <div className="h-5 w-3.5 rounded-full bg-[#3CB371] origin-bottom-left rotate-12" />
                         </motion.div>
-                        <div className="h-3.5 w-1 bg-[#2D6A4F] mt-2 rounded-full" />
+                        <div className="h-3.5 w-1 bg-[#116466] mt-2 rounded-full" />
                         <div className="h-8 w-10 rounded-b-xl bg-[#D4A373] shadow-inner flex items-center justify-center">
                           <div className="flex gap-1.5 mb-1">
                             <div className="h-1.5 w-1.5 rounded-full bg-[#2D3142]" />
@@ -807,33 +651,32 @@ function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <span className="mt-2 text-[11px] font-semibold text-[#40916C]">Sprout</span>
+                    <span className="mt-2 text-[11px] font-bold text-[#116466]">Sprout</span>
                   </div>
 
-                  {/* Rotating Message Cloud (Inline & Clean) */}
-                  <div className="flex-1 w-full rounded-2xl bg-white p-5 shadow-sm border border-[#D8F3DC]">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#52B788] mb-1">
-                      {upliftingMessages[activeTipIndex].title}
+                  {/* Adaptive Message Cloud */}
+                  <div className="flex-1 w-full rounded-2xl bg-white/80 p-5 shadow-sm border border-[#BEE3DB] backdrop-blur-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#2E8B57] mb-1">
+                      {currentMessages[activeTipIndex].title}
                     </p>
                     <h2 className="text-sm font-bold text-[#2D3142]">
-                      {upliftingMessages[activeTipIndex].text}
+                      {currentMessages[activeTipIndex].text}
                     </h2>
                     <p className="mt-2 text-xs leading-relaxed text-[#52796F]">
-                      Use the guided reflection tool whenever your thoughts feel heavy or tangled. I am here to help you unpack them step by step.
+                      Therapeutic check-in: Notice any physical tension in your jaw or shoulders right now? Let it melt away.
                     </p>
                   </div>
-
                 </div>
               </div>
 
-              {/* Bottom Acoustic Bar */}
-              <div className="mt-6 flex flex-wrap items-center justify-between border-t border-[#D8F3DC] pt-4">
+              {/* Ambient Soundscapes */}
+              <div className="mt-6 flex flex-wrap items-center justify-between border-t border-[#BEE3DB]/60 pt-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-[#52796F]">Companion Sounds:</span>
+                  <span className="text-xs font-semibold text-[#116466]">Atmospheric Sounds:</span>
                   <button
                     onClick={() => toggleSound("Rain", "https://cdn.pixabay.com/download/audio/2021/09/06/audio_75c7423985.mp3?filename=gentle-rain-15258.mp3")}
                     className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-                      activeSound === "Rain" ? "bg-[#40916C] text-white" : "bg-white text-[#40916C] hover:bg-[#D8F3DC]"
+                      activeSound === "Rain" ? "bg-[#116466] text-white" : "bg-white/80 text-[#116466] hover:bg-white"
                     }`}
                   >
                     Rainfall
@@ -841,7 +684,7 @@ function Dashboard() {
                   <button
                     onClick={() => toggleSound("Forest", "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=forest-birds-and-wind-6213.mp3")}
                     className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
-                      activeSound === "Forest" ? "bg-[#40916C] text-white" : "bg-white text-[#40916C] hover:bg-[#D8F3DC]"
+                      activeSound === "Forest" ? "bg-[#116466] text-white" : "bg-white/80 text-[#116466] hover:bg-white"
                     }`}
                   >
                     Forest
@@ -858,97 +701,72 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Sprout's Growth & Milestone Rewards Card */}
-            <div className="flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-white p-7 shadow-sm">
+            {/* Emotional Rhythm & Gentle Analytics Card (Pinterest Aesthetic) */}
+            <div className="flex flex-col justify-between rounded-[28px] border border-[#F5E79B] bg-gradient-to-br from-[#FFFDEB] to-[#FFF9D6] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#2D6A4F]">
-                    Sprout's Growth Sanctuary
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#9A7B00]">
+                    Emotional Weather Rhythm
                   </p>
-                  <span className="rounded-full bg-[#D8F3DC] px-3 py-0.5 text-[10px] font-bold text-[#2D6A4F]">
-                    Level 2 Sprout 🌱
+                  <span className="rounded-full bg-white/70 px-2.5 py-0.5 text-[10px] font-bold text-[#9A7B00]">
+                    Pacing Mode
                   </span>
                 </div>
 
-                {/* Growth Progress Bar */}
-                <div className="mt-4 rounded-2xl bg-[#F4F9F4] p-4 border border-[#D8F3DC]">
-                  <div className="flex items-center justify-between text-xs font-semibold text-[#2D3142] mb-2">
-                    <span>Journey to Blooming Flower</span>
-                    <span className="text-[#40916C]">
-                      {wellness ? `${Math.min(100, wellness.total_analyzed * 15)}%` : "0%"}
-                    </span>
-                  </div>
-                  
-                  <div className="h-2 w-full rounded-full bg-[#E9F2E9] overflow-hidden">
-                    <div
-                      className="h-full bg-[#52B788] transition-all duration-500"
-                      style={{
-                        width: wellness ? `${Math.min(100, wellness.total_analyzed * 15)}%` : "10%"
-                      }}
-                    />
-                  </div>
-
-                  <p className="mt-3 text-xs font-medium text-[#52796F]">
-                    {wellness && wellness.total_analyzed >= 7
-                      ? "Sprout is thriving and growing stronger with every reflection!"
-                      : "Write a few more entries to help Sprout grow its first leaves."}
-                  </p>
-                </div>
-
-                {/* Unlocked Cozy Badges */}
-                <div className="mt-5 space-y-2.5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#77716B]">
-                    Unlocked Milestones
-                  </p>
-                  
-                  <div className="flex items-center justify-between rounded-xl bg-[#F9F7F3] p-3 border border-[#EFEAE0]">
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-base">🌱</span>
-                      <div>
-                        <p className="text-xs font-bold text-[#302D2A]">First Breath</p>
-                        <p className="text-[10px] text-[#77716B]">Opened your safe reflection space</p>
-                      </div>
+                <div className="mt-4 rounded-2xl bg-white/70 p-4 border border-[#F5E79B]/60">
+                  <div className="flex items-center gap-3">
+                    <div className="text-3xl">
+                      {wellness && wellness.average_sentiment < -0.1 ? "🌧️" : wellness && wellness.average_sentiment > 0.2 ? "☀️" : "⛅"}
                     </div>
-                    <span className="text-[10px] font-bold text-[#52B788] bg-[#D8F3DC] px-2 py-0.5 rounded-full">Unlocked</span>
+                    <div>
+                      <p className="text-xs font-bold text-[#302D2A]">
+                        {wellness && wellness.average_sentiment < -0.1 ? "Processing Heavy Weather" : "Balanced & Moving Forward"}
+                      </p>
+                      <p className="text-[11px] text-[#77716B]">
+                        {wellness && wellness.average_sentiment < -0.1 ? "Heavy days are normal chapters, not the whole book." : "Steady rhythm detected in your reflections."}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className={`flex items-center justify-between rounded-xl p-3 border ${wellness && wellness.total_analyzed >= 5 ? "bg-[#F9F7F3] border-[#EFEAE0]" : "bg-[#FAF8F5] border-dashed border-[#E5E0D8] opacity-60"}`}>
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-base">🌿</span>
-                      <div>
-                        <p className="text-xs font-bold text-[#302D2A]">Mindful Explorer</p>
-                        <p className="text-[10px] text-[#77716B]">Track 5 emotional reflections</p>
-                      </div>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex justify-between text-[11px] font-semibold text-[#77716B]">
+                      <span>Self-Compassion Index</span>
+                      <span className="text-[#9A7B00]">Active</span>
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${wellness && wellness.total_analyzed >= 5 ? "text-[#52B788] bg-[#D8F3DC]" : "text-[#77716B] bg-[#EFEAE0]"}`}>
-                      {wellness && wellness.total_analyzed >= 5 ? "Unlocked" : `${wellness ? wellness.total_analyzed : 0}/5`}
-                    </span>
+                    <div className="h-2 w-full rounded-full bg-[#F5E79B]/50 overflow-hidden">
+                      <div className="h-full bg-[#D4A373] w-3/4 rounded-full" />
+                    </div>
                   </div>
                 </div>
 
+                <div className="mt-4 space-y-2 text-xs text-[#625B54]">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#9A7B00]">Therapeutic Insight</p>
+                  <p className="leading-relaxed text-[11px]">
+                    "Feelings are visitors. Let them come and go without building a permanent home in your mind."
+                  </p>
+                </div>
               </div>
 
-              <div className="mt-5 border-t border-[#F0ECE1] pt-4">
-                <p className="text-[11px] text-[#9B948C] italic text-center">
-                  "Progress is measured in self-kindness, not perfection."
+              <div className="mt-5 border-t border-[#F5E79B]/60 pt-3">
+                <p className="text-[10px] text-[#8C857D] italic text-center">
+                  You are safe here to be wherever you are.
                 </p>
               </div>
-
             </div>
 
           </div>
 
-          {/* Stats */}
+          {/* Stats Bar */}
           <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <button onClick={() => handleStatClick("total")} className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-white p-5 text-left transition hover:-translate-y-0.5">
+            <button onClick={() => handleStatClick("total")} className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-white p-5 text-left transition hover:-translate-y-0.5 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-[#8C857D]">Notes</span>
+                <span className="text-sm text-[#8C857D]">Reflections</span>
                 <FileText size={18} className="text-[#7C6CF2]" />
               </div>
               <p className="mt-4 text-3xl font-bold text-[#302D2A]">{stats.total_notes}</p>
             </button>
 
-            <button onClick={() => handleStatClick("favorite")} className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#FFF8D9] p-5 text-left transition hover:-translate-y-0.5">
+            <button onClick={() => handleStatClick("favorite")} className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#FFF8D9] p-5 text-left transition hover:-translate-y-0.5 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-[#8C857D]">Favorites</span>
                 <Heart size={18} className="text-[#C58B16]" />
@@ -956,7 +774,7 @@ function Dashboard() {
               <p className="mt-4 text-3xl font-bold text-[#514421]">{stats.favorite_notes}</p>
             </button>
 
-            <button onClick={() => handleStatClick("pinned")} className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#E7F9FF] p-5 text-left transition hover:-translate-y-0.5">
+            <button onClick={() => handleStatClick("pinned")} className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#E7F9FF] p-5 text-left transition hover:-translate-y-0.5 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-[#62808A]">Pinned</span>
                 <Pin size={18} className="text-[#1685A0]" />
@@ -964,7 +782,7 @@ function Dashboard() {
               <p className="mt-4 text-3xl font-bold text-[#245A68]">{stats.pinned_notes}</p>
             </button>
 
-            <button onClick={() => handleStatClick("trash")} className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#FFF0F2] p-5 text-left transition hover:-translate-y-0.5">
+            <button onClick={() => handleStatClick("trash")} className="cursor-pointer rounded-3xl border border-[#EEE9E1] bg-[#FFF0F2] p-5 text-left transition hover:-translate-y-0.5 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-[#9A7277]">Trash</span>
                 <Trash2 size={18} className="text-[#B85D69]" />
@@ -985,7 +803,7 @@ function Dashboard() {
                   <FileText size={24} />
                 </div>
                 <h2 className="mt-5 text-lg font-semibold text-[#3C3834]">
-                  {searchQuery ? "No notes found" : "No notes yet"}
+                  {searchQuery ? "No reflections found" : "No reflections yet"}
                 </h2>
                 {!searchQuery && (
                   <button
@@ -993,7 +811,7 @@ function Dashboard() {
                     className="mt-5 flex items-center gap-2 rounded-xl bg-[#7C6CF2] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#6E5EE5]"
                   >
                     <Plus size={17} />
-                    Create note
+                    Create reflection
                   </button>
                 )}
               </motion.div>
@@ -1090,7 +908,7 @@ function Dashboard() {
         </main>
       </div>
 
-      {/* View Note Modal */}
+      {/* View Modal */}
       <AnimatePresence>
         {viewingNote && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3D3940]/30 p-4 backdrop-blur-sm" onClick={() => setViewingNote(null)}>
@@ -1103,7 +921,7 @@ function Dashboard() {
             >
               <div className="flex items-start justify-between gap-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B948C]">Note</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B948C]">Reflection</p>
                   <h2 className="mt-3 break-words text-3xl font-bold tracking-tight text-[#302D2A]">{viewingNote.title}</h2>
                   <p className="mt-3 text-xs text-[#A19A92]">Updated {new Date(viewingNote.updated_at).toLocaleString()}</p>
                 </div>
@@ -1120,7 +938,7 @@ function Dashboard() {
 
               <div className="mt-9 flex flex-wrap items-center justify-between gap-4 border-t border-[#EEEAE3] pt-6">
                 <p className="text-xs text-[#A19A92]">
-                  {viewingNote.content.trim().split(/\s+/).filter(Boolean).length} words · {viewingNote.content.length} characters
+                  {viewingNote.content.trim().split(/\s+/).filter(Boolean).length} words
                 </p>
                 <div className="flex gap-2">
                   <button onClick={() => startEditing(viewingNote)} className="flex cursor-pointer items-center gap-2 rounded-xl border border-[#E3DED6] bg-white px-4 py-2.5 text-sm font-medium text-[#625E59]">
@@ -1148,8 +966,8 @@ function Dashboard() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B948C]">{editingNoteId ? "Edit" : "New note"}</p>
-                  <h2 className="mt-2 text-2xl font-bold text-[#302D2A]">{editingNoteId ? "Edit note" : "Create note"}</h2>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B948C]">{editingNoteId ? "Edit" : "New reflection"}</p>
+                  <h2 className="mt-2 text-2xl font-bold text-[#302D2A]">{editingNoteId ? "Edit reflection" : "Guided Reflection"}</h2>
                 </div>
                 <button onClick={resetEditor} className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F7F5F0] text-[#77716B]">
                   <X size={18} />
@@ -1176,14 +994,14 @@ function Dashboard() {
                       onClick={() => setWriteMode("guided")}
                       className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${writeMode === "guided" ? "bg-white text-[#302D2A] shadow-sm" : "text-[#77716B]"}`}
                     >
-                      Guided Reflection
+                      Gentle Guided Flow
                     </button>
                     <button
                       type="button"
                       onClick={() => setWriteMode("plain")}
                       className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${writeMode === "plain" ? "bg-white text-[#302D2A] shadow-sm" : "text-[#77716B]"}`}
                     >
-                      Plain Journaling
+                      Free Journaling
                     </button>
                   </div>
                 )}
@@ -1201,14 +1019,14 @@ function Dashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4 rounded-2xl bg-[#F9F7F3] p-4 border border-[#EAE5DC]">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#77716B]">Gentle Reflection Guide</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#77716B]">ACT & CBT Decompression Guide</p>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-[#625E59]">1. What is weighing on your mind right now?</label>
+                      <label className="mb-1 block text-xs font-medium text-[#625E59]">1. What situation or burden is on your mind?</label>
                       <input
                         type="text"
                         value={situation}
                         onChange={(e) => setSituation(e.target.value)}
-                        placeholder="e.g., Feeling overwhelmed with college work"
+                        placeholder="e.g., Exhausted from constant deadlines"
                         className="w-full rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
                       />
                     </div>
@@ -1218,26 +1036,26 @@ function Dashboard() {
                         type="text"
                         value={negativeThought}
                         onChange={(e) => setNegativeThought(e.target.value)}
-                        placeholder="e.g., I am falling behind and cannot catch up"
+                        placeholder="e.g., I'm falling behind everyone else"
                         className="w-full rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-[#625E59]">3. Let us look at this gently. Is this entirely true?</label>
+                      <label className="mb-1 block text-xs font-medium text-[#625E59]">3. Let's look at this gently. Is this an absolute fact or a passing feeling?</label>
                       <textarea
                         value={reframing}
                         onChange={(e) => setReframing(e.target.value)}
-                        placeholder="Write down a kinder, more balanced way to look at it..."
+                        placeholder="Write down a kinder, more balanced perspective..."
                         rows={3}
                         className="w-full resize-none rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-[#625E59]">4. What is one small, kind step you can take for yourself next?</label>
+                      <label className="mb-1 block text-xs font-medium text-[#625E59]">4. What is one ultra-small act of self-kindness you can offer yourself?</label>
                       <textarea
                         value={actionPlan}
                         onChange={(e) => setActionPlan(e.target.value)}
-                        placeholder="e.g., Take a 10-minute walk and focus on just one task..."
+                        placeholder="e.g., Drink water, close my eyes for 5 minutes..."
                         rows={3}
                         className="w-full resize-none rounded-xl border border-[#E5E0D8] bg-white px-3.5 py-2.5 text-sm text-[#302D2A] outline-none focus:border-[#B9AEF6]"
                       />
@@ -1252,54 +1070,7 @@ function Dashboard() {
                 </button>
                 <button onClick={editingNoteId ? updateNote : createNewNote} className="cursor-pointer flex items-center gap-2 rounded-xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white">
                   <Check size={17} />
-                  {editingNoteId ? "Save changes" : "Create note"}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Share Note Modal */}
-      <AnimatePresence>
-        {noteToShare && (
-          <div className="fixed inset-0 z-[65] flex items-center justify-center bg-[#3D3940]/30 p-4 backdrop-blur-sm" onClick={() => { if (!sharing) { setNoteToShare(null); setShareRecipient(""); } }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md rounded-[30px] bg-white p-7 shadow-2xl"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9B948C]">Share note</p>
-                  <h2 className="mt-2 break-words text-2xl font-bold text-[#302D2A]">Share "{noteToShare.title}"</h2>
-                </div>
-                <button onClick={() => { setNoteToShare(null); setShareRecipient(""); }} disabled={sharing} className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-[#F7F5F0] text-[#77716B]">
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="mt-7">
-                <label className="mb-2 block text-sm font-medium text-[#625E59]">Recipient</label>
-                <input
-                  type="text"
-                  value={shareRecipient}
-                  onChange={(e) => setShareRecipient(e.target.value)}
-                  placeholder="Username or email"
-                  autoFocus
-                  disabled={sharing}
-                  className="w-full rounded-2xl border border-[#E5E0D8] bg-[#FCFBF8] px-4 py-3.5 text-[#302D2A] outline-none transition focus:border-[#B9AEF6] focus:ring-4 focus:ring-[#EEEAFE]"
-                />
-              </div>
-
-              <div className="mt-7 flex justify-end gap-2">
-                <button onClick={() => { setNoteToShare(null); setShareRecipient(""); }} disabled={sharing} className="cursor-pointer rounded-xl px-5 py-3 text-sm font-medium text-[#77716B]">
-                  Cancel
-                </button>
-                <button onClick={shareNote} disabled={sharing || !shareRecipient.trim()} className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white">
-                  {sharing ? "Sharing..." : <><Share2 size={16} /> Share note</>}
+                  {editingNoteId ? "Save changes" : "Save reflection"}
                 </button>
               </div>
             </motion.div>
@@ -1320,14 +1091,14 @@ function Dashboard() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF0F2] text-[#B85D69]">
                 <Trash2 size={21} />
               </div>
-              <h2 className="mt-5 text-xl font-bold text-[#302D2A]">Delete note?</h2>
-              <p className="mt-2 text-sm leading-6 text-[#77716B]">"{noteToDelete.title}" will be moved to trash.</p>
+              <h2 className="mt-5 text-xl font-bold text-[#302D2A]">Move to trash?</h2>
+              <p className="mt-2 text-sm leading-6 text-[#77716B]">"{noteToDelete.title}" will be safely tucked away.</p>
               <div className="mt-7 flex justify-end gap-2">
                 <button onClick={() => setNoteToDelete(null)} className="cursor-pointer rounded-xl px-5 py-3 text-sm font-medium text-[#77716B]">
                   Cancel
                 </button>
                 <button onClick={async () => { await deleteNote(noteToDelete.id); setNoteToDelete(null); }} className="flex items-center gap-2 rounded-xl bg-[#C85C68] px-5 py-3 text-sm font-semibold text-white">
-                  <Trash2 size={16} /> Delete
+                  <Trash2 size={16} /> Move to trash
                 </button>
               </div>
             </motion.div>
