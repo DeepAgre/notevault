@@ -18,11 +18,6 @@ import {
   X,
   Share2,
   BookOpen,
-  Sparkles,
-  ShieldAlert,
-  Activity,
-  Smile,
-  CloudRain,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -123,8 +118,6 @@ function Dashboard() {
       }
     });
 
-    // Dynamic Self-Compassion Index calculation:
-    // Rewards the user for journaling and engaging in guided reframing even during heavy days
     let calculatedScore = Math.min(100, Math.max(20, Math.round((processingCount / Math.max(1, notes.length)) * 50 + (notes.length * 7))));
     
     return {
@@ -135,7 +128,6 @@ function Dashboard() {
     };
   }, [notes]);
 
-  // Adaptive therapeutic messaging based on real note sentiment
   const [activeTipIndex, setActiveTipIndex] = useState(0);
   
   const getTherapeuticMessages = (sentiment) => {
@@ -647,10 +639,10 @@ function Dashboard() {
             </motion.button>
           </div>
 
-          {/* Fully Utilized Companion & Dynamic Live Analytics Section (Zero Hardcoding) */}
+          {/* Fully Utilized Companion & Dynamic Live Analytics Section */}
           <div className="mt-6 grid gap-5 lg:grid-cols-3">
             
-            {/* Sprout Companion Card (Fully Utilized Layout) */}
+            {/* Sprout Companion Card */}
             <div className="col-span-2 flex flex-col justify-between rounded-[28px] border border-[#BEE3DB] bg-gradient-to-br from-[#E8F8F5] to-[#D1F2EB] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
@@ -668,7 +660,7 @@ function Dashboard() {
                       <div className="relative flex flex-col items-center">
                         <motion.div
                           animate={{ rotate: [-3, 3, -3] }}
-                          transition={{ duration: 4, repeat: Infinitude, ease: "easeInOut" }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                           className="absolute -top-6 flex gap-1"
                         >
                           <div className="h-5 w-3.5 rounded-full bg-[#2E8B57] origin-bottom-right -rotate-12" />
@@ -700,7 +692,7 @@ function Dashboard() {
                   </div>
                 </div>
 
-                {/* Additional Live Metrics inside Sprout Card to fill blank space */}
+                {/* Additional Live Metrics inside Sprout Card */}
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl bg-white/70 p-3 border border-[#BEE3DB]/60">
                     <p className="text-[10px] font-semibold text-[#52796F] uppercase">Heavy Entries</p>
@@ -749,7 +741,7 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Dynamic Compassion Index & Emotional Weather Card (Fully Calculated from Database) */}
+            {/* Dynamic Compassion Index Card */}
             <div className="flex flex-col justify-between rounded-[28px] border border-[#F5E79B] bg-gradient-to-br from-[#FFFDEB] to-[#FFF9D6] p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
@@ -767,7 +759,6 @@ function Dashboard() {
                     <span className="text-sm font-bold text-[#9A7B00]">{dynamicMetrics.compassionScore}%</span>
                   </div>
 
-                  {/* Dynamic Progress Bar */}
                   <div className="h-2.5 w-full rounded-full bg-[#F5E79B]/50 overflow-hidden">
                     <div
                       className="h-full bg-[#D4A373] transition-all duration-500 rounded-full"
