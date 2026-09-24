@@ -3,9 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Check,
-  ChevronDown,
   FileText,
-  Heart,
   LogOut,
   Menu,
   Plus,
@@ -187,15 +185,26 @@ function Dashboard() {
 
   const createNewNote = async () => {
     if (savingNote) return;
-    let finalContent = content.trim();
 
-    if (!finalContent && (situation || negativeThought || reframing || actionPlan)) {
-      finalContent = `What is on my mind:\n${situation.trim() || "Not specified"}\n\nHeavy thoughts I am carrying:\n${negativeThought.trim() || "Not specified"}\n\nLooking at it gently:\n${reframing.trim() || "Not specified"}\n\nSmall step forward:\n${actionPlan.trim() || "Not specified"}`;
+    // Validation checks
+    if (!title.trim()) {
+      toast.error("Please provide a title for your reflection");
+      return;
     }
 
-    if (!title.trim() || !finalContent) {
-      toast.error("Please provide a title and your thoughts");
-      return;
+    let finalContent = content.trim();
+
+    if (writeMode === "guided") {
+      if (!situation.trim() && !negativeThought.trim() && !reframing.trim() && !actionPlan.trim()) {
+        toast.error("Please fill out at least one section of the guided flow");
+        return;
+      }
+      finalContent = `What is on my mind:\n${situation.trim() || "Not specified"}\n\nHeavy thoughts I am carrying:\n${negativeThought.trim() || "Not specified"}\n\nLooking at it gently:\n${reframing.trim() || "Not specified"}\n\nSmall step forward:\n${actionPlan.trim() || "Not specified"}`;
+    } else {
+      if (!finalContent) {
+        toast.error("Please write down your thoughts");
+        return;
+      }
     }
 
     setSavingNote(true);
@@ -209,6 +218,7 @@ function Dashboard() {
     } catch (error) {
       console.log(error);
       toast.error("Failed to save reflection");
+    } finally {
       setSavingNote(false);
     }
   };
@@ -530,8 +540,21 @@ function Dashboard() {
 
               <div className="mt-7 flex justify-end gap-2">
                 <button onClick={resetEditor} disabled={savingNote} className="cursor-pointer rounded-xl px-5 py-3 text-sm font-medium text-[#77716B]">Cancel</button>
-                <button onClick={createNewNote} disabled={savingNote} className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white hover:bg-[#6E5EE5] disabled:opacity-60">
-                  {savingNote ? "Saving..." : <><Check size={17} /> Save reflection</>}
+                <button
+                  onClick={createNewNote}
+                  disabled={savingNote}
+                  className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#7C6CF2] px-5 py-3 text-sm font-semibold text-white hover:bg-[#6E5EE5] disabled:opacity-60"
+                >
+                  {savingNote ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={17} /> Save reflection
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>

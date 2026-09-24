@@ -3,6 +3,7 @@ import { useState } from "react";
 import { User, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import toast from "react-hot-toast";
 
 function Login() {
   const [identifier, setIdentifier] = useState("");
@@ -13,11 +14,32 @@ function Login() {
 
   const navigate = useNavigate();
 
+  const validateForm = () => {
+    const cleanIdentifier = identifier.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanIdentifier || !cleanPassword) {
+      return "Please enter your email/username and password.";
+    }
+
+    if (cleanIdentifier.length < 2) {
+      return "Please enter a valid email or username.";
+    }
+
+    if (cleanPassword.length < 6) {
+      return "Password must be at least 6 characters long.";
+    }
+
+    return null;
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (!identifier.trim() || !password.trim()) {
-      setErrorMessage("Please enter your email/username and password.");
+    const validationError = validateForm();
+    if (validationError) {
+      setErrorMessage(validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -25,7 +47,6 @@ function Login() {
     setErrorMessage("");
 
     const formData = new URLSearchParams();
-
     formData.append("username", identifier.trim());
     formData.append("password", password);
 
@@ -41,18 +62,21 @@ function Login() {
         response.data.access_token
       );
 
+      toast.success("Signed in successfully!");
       navigate("/dashboard");
 
     } catch (error) {
       console.error("LOGIN ERROR:", error);
 
+      let errorMsg = "Something went wrong. Please try again.";
       if (error.response?.status === 401) {
-        setErrorMessage("Invalid email/username or password.");
-      } else {
-        setErrorMessage(
-          "Something went wrong. Please try again."
-        );
+        errorMsg = "Invalid email/username or password.";
+      } else if (error.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
       }
+
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -60,47 +84,33 @@ function Login() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#fffaf7] text-slate-900">
-
       {/* Colorful background */}
       <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-cyan-300/40 blur-[110px]" />
-
       <div className="pointer-events-none absolute right-[-120px] top-20 h-[420px] w-[420px] rounded-full bg-pink-300/40 blur-[130px]" />
-
       <div className="pointer-events-none absolute bottom-[-160px] left-[20%] h-[420px] w-[420px] rounded-full bg-purple-300/30 blur-[130px]" />
-
       <div className="pointer-events-none absolute bottom-[-120px] right-[10%] h-[320px] w-[320px] rounded-full bg-yellow-200/50 blur-[110px]" />
 
       {/* Main */}
       <div className="relative flex min-h-screen items-center justify-center px-5 py-10">
-
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="w-full max-w-[430px]"
         >
-
           {/* Logo */}
           <div className="mb-8 text-center">
-
             <h1 className="text-5xl font-black tracking-tight text-slate-900">
               Note<span className="text-cyan-500">Vault</span>
             </h1>
-
             <p className="mt-3 text-sm text-slate-500">
               Sign in to your account
             </p>
-
           </div>
 
           {/* Card */}
           <div className="rounded-[32px] border border-white/80 bg-white/75 p-7 shadow-[0_25px_80px_rgba(15,23,42,0.10)] backdrop-blur-2xl sm:p-9">
-
-            <form
-              onSubmit={handleLogin}
-              className="space-y-5"
-            >
-
+            <form onSubmit={handleLogin} className="space-y-5">
               {/* Error */}
               {errorMessage && (
                 <motion.div
@@ -114,54 +124,45 @@ function Login() {
 
               {/* Email / Username */}
               <div>
-
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Email or Username
                 </label>
-
                 <div className="relative">
-
                   <User
                     size={18}
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   />
-
                   <input
                     type="text"
                     placeholder="you@example.com or username"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     autoComplete="username"
-                    className="w-full rounded-2xl border border-slate-200 bg-white/80 py-3.5 pl-11 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+                    disabled={loading}
+                    className="w-full rounded-2xl border border-slate-200 bg-white/80 py-3.5 pl-11 pr-4 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10 disabled:opacity-60"
                   />
-
                 </div>
-
               </div>
 
               {/* Password */}
               <div>
-
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Password
                 </label>
-
                 <div className="relative">
-
                   <Lock
                     size={18}
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   />
-
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
-                    className="w-full rounded-2xl border border-slate-200 bg-white/80 py-3.5 pl-11 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10"
+                    disabled={loading}
+                    className="w-full rounded-2xl border border-slate-200 bg-white/80 py-3.5 pl-11 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10 disabled:opacity-60"
                   />
-
                   <button
                     type="button"
                     onClick={() =>
@@ -180,9 +181,7 @@ function Login() {
                       <Eye size={18} />
                     )}
                   </button>
-
                 </div>
-
               </div>
 
               {/* Sign in */}
@@ -191,11 +190,10 @@ function Login() {
                 disabled={loading}
                 className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 font-semibold text-white shadow-lg shadow-slate-900/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
-
                 {loading ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Signing in
+                    Signing in...
                   </>
                 ) : (
                   <>
@@ -206,18 +204,14 @@ function Login() {
                     />
                   </>
                 )}
-
               </button>
-
             </form>
 
             {/* Register */}
             <div className="mt-7 border-t border-slate-200 pt-6 text-center">
-
               <p className="text-sm text-slate-500">
                 Don't have an account?
               </p>
-
               <button
                 type="button"
                 onClick={() => navigate("/register")}
@@ -225,15 +219,10 @@ function Login() {
               >
                 Create an account
               </button>
-
             </div>
-
           </div>
-
         </motion.div>
-
       </div>
-
     </div>
   );
 }
