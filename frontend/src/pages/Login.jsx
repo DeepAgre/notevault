@@ -26,9 +26,8 @@ function Login() {
       return "Please enter a valid email or username.";
     }
 
-    if (cleanPassword.length < 6) {
-      return "Password must be at least 6 characters long.";
-    }
+    // Removed the strict < 6 character check for login 
+    // so incorrect passwords can properly hit the backend and return 401
 
     return null;
   };
@@ -149,7 +148,7 @@ function Login() {
                     value={identifier}
                     onChange={(e) => {
                       setIdentifier(e.target.value);
-                      if (errorMessage) setErrorMessage(""); // Clear error as user types
+                      if (errorMessage) setErrorMessage("");
                     }}
                     autoComplete="username"
                     disabled={loading}
@@ -174,7 +173,7 @@ function Login() {
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
-                      if (errorMessage) setErrorMessage(""); // Clear error as user types
+                      if (errorMessage) setErrorMessage("");
                     }}
                     autoComplete="current-password"
                     disabled={loading}
