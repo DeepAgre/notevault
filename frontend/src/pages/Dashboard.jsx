@@ -858,61 +858,70 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Detailed Emotional Analytics & Wellness Insights Card */}
+            {/* Sprout's Growth & Milestone Rewards Card */}
             <div className="flex flex-col justify-between rounded-[32px] border border-[#E9E4DB] bg-white p-7 shadow-sm">
               <div>
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#7C6CF2]">
-                    Deep Sentiment Analytics
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#2D6A4F]">
+                    Sprout's Growth Sanctuary
                   </p>
-                  <span className="rounded-full bg-[#F0EDFF] px-2.5 py-0.5 text-[10px] font-bold text-[#7C6CF2]">
-                    VADER Engine
+                  <span className="rounded-full bg-[#D8F3DC] px-3 py-0.5 text-[10px] font-bold text-[#2D6A4F]">
+                    Level 2 Sprout 🌱
                   </span>
                 </div>
 
-                {/* Sentiment Meter Breakdown */}
-                <div className="mt-4 rounded-2xl bg-[#F7F5F0] p-4 border border-[#EFEAE0]">
-                  <div className="flex items-center justify-between text-xs font-semibold text-[#302D2A] mb-2">
-                    <span>Average Sentiment Index</span>
-                    <span className="text-[#7C6CF2]">
-                      {wellness ? wellness.average_sentiment : "0.00"}
+                {/* Growth Progress Bar */}
+                <div className="mt-4 rounded-2xl bg-[#F4F9F4] p-4 border border-[#D8F3DC]">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[#2D3142] mb-2">
+                    <span>Journey to Blooming Flower</span>
+                    <span className="text-[#40916C]">
+                      {wellness ? `${Math.min(100, wellness.total_analyzed * 15)}%` : "0%"}
                     </span>
                   </div>
                   
-                  {/* Progress bar representing sentiment polarity */}
-                  <div className="h-2 w-full rounded-full bg-[#E5E0D5] overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-[#E9F2E9] overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-500 ${
-                        wellness && wellness.average_sentiment < -0.2
-                          ? "bg-[#B85D69]"
-                          : wellness && wellness.average_sentiment > 0.3
-                          ? "bg-[#52B788]"
-                          : "bg-[#7C6CF2]"
-                      }`}
+                      className="h-full bg-[#52B788] transition-all duration-500"
                       style={{
-                        width: wellness ? `${Math.min(100, Math.max(10, (wellness.average_sentiment + 1) * 50))}%` : "50%"
+                        width: wellness ? `${Math.min(100, wellness.total_analyzed * 15)}%` : "10%"
                       }}
                     />
                   </div>
 
-                  <p className="mt-3 text-xs font-medium text-[#77716B]">
-                    Status: <span className="text-[#302D2A] font-bold capitalize">{wellness ? wellness.status || "Balanced" : "Waiting for entries"}</span>
+                  <p className="mt-3 text-xs font-medium text-[#52796F]">
+                    {wellness && wellness.total_analyzed >= 7
+                      ? "Sprout is thriving and growing stronger with every reflection!"
+                      : "Write a few more entries to help Sprout grow its first leaves."}
                   </p>
                 </div>
 
-                <div className="mt-5 space-y-3 text-xs text-[#514B45]">
+                {/* Unlocked Cozy Badges */}
+                <div className="mt-5 space-y-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#77716B]">
+                    Unlocked Milestones
+                  </p>
+                  
                   <div className="flex items-center justify-between rounded-xl bg-[#F9F7F3] p-3 border border-[#EFEAE0]">
-                    <span className="text-[#77716B]">Total Evaluated Entries</span>
-                    <span className="font-bold text-[#302D2A]">{wellness ? wellness.total_analyzed : 0}</span>
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">🌱</span>
+                      <div>
+                        <p className="text-xs font-bold text-[#302D2A]">First Breath</p>
+                        <p className="text-[10px] text-[#77716B]">Opened your safe reflection space</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#52B788] bg-[#D8F3DC] px-2 py-0.5 rounded-full">Unlocked</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-xl bg-[#F9F7F3] p-3 border border-[#EFEAE0]">
-                    <span className="text-[#77716B]">Dominant Mindset State</span>
-                    <span className="font-bold text-[#302D2A]">
-                      {wellness && wellness.average_sentiment < -0.2
-                        ? "High Stress / Heavy"
-                        : wellness && wellness.average_sentiment > 0.3
-                        ? "Clear / Positive"
-                        : "Reflective / Calm"}
+
+                  <div className={`flex items-center justify-between rounded-xl p-3 border ${wellness && wellness.total_analyzed >= 5 ? "bg-[#F9F7F3] border-[#EFEAE0]" : "bg-[#FAF8F5] border-dashed border-[#E5E0D8] opacity-60"}`}>
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">🌿</span>
+                      <div>
+                        <p className="text-xs font-bold text-[#302D2A]">Mindful Explorer</p>
+                        <p className="text-[10px] text-[#77716B]">Track 5 emotional reflections</p>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${wellness && wellness.total_analyzed >= 5 ? "text-[#52B788] bg-[#D8F3DC]" : "text-[#77716B] bg-[#EFEAE0]"}`}>
+                      {wellness && wellness.total_analyzed >= 5 ? "Unlocked" : `${wellness ? wellness.total_analyzed : 0}/5`}
                     </span>
                   </div>
                 </div>
@@ -921,7 +930,7 @@ function Dashboard() {
 
               <div className="mt-5 border-t border-[#F0ECE1] pt-4">
                 <p className="text-[11px] text-[#9B948C] italic text-center">
-                  "Self-awareness is the first step toward emotional resilience."
+                  "Progress is measured in self-kindness, not perfection."
                 </p>
               </div>
 
