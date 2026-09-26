@@ -8,6 +8,7 @@ import PublicRoute from "./components/PublicRoute";
 import Trash from "./pages/Trash";
 import Resources from "./pages/Resources";
 import Reflections from "./pages/Reflections";
+import WellnessArcade from "./pages/WellnessArcade";
 
 function App() {
   return (
@@ -70,6 +71,8 @@ function App() {
       />
 
       <Route path="/reflections" element={<Reflections />} />
+
+      <Route path="/wellness-arcade" element={<WellnessArcade />} />
 
     </Routes>
   );
