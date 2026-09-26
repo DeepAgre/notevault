@@ -9,6 +9,7 @@ import Trash from "./pages/Trash";
 import Resources from "./pages/Resources";
 import Reflections from "./pages/Reflections";
 import WellnessArcade from "./pages/WellnessArcade";
+import About from "./pages/About";
 
 function App() {
   return (
@@ -73,6 +74,8 @@ function App() {
       <Route path="/reflections" element={<Reflections />} />
 
       <Route path="/wellness-arcade" element={<WellnessArcade />} />
+
+      <Route path="/about" element={<About />} />
 
     </Routes>
   );

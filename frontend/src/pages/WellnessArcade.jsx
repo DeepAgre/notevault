@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Play,
   Award,
+  Info,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -193,6 +194,10 @@ function WellnessArcade() {
             <button onClick={() => navigate("/settings")} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]">
               <Settings size={18} /> Settings
             </button>
+            {/* Added About Link Here */}
+            <button onClick={() => navigate("/about")} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]">
+              <Info size={18} /> About NoteVault
+            </button>
           </div>
 
           <div className="mt-auto border-t border-[#EEEAE3] pt-5">
@@ -226,6 +231,8 @@ function WellnessArcade() {
                     <button onClick={() => navigate("/trash")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"><Trash2 size={18} /> Trash</button>
                     <button onClick={() => navigate("/resources")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"><BookOpen size={18} /> Wellness Resources</button>
                     <button onClick={() => navigate("/settings")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"><Settings size={18} /> Settings</button>
+                    {/* Added About Link in Mobile Menu */}
+                    <button onClick={() => navigate("/about")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"><Info size={18} /> About NoteVault</button>
                     <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#A35A62] hover:bg-[#FFF0F1]"><LogOut size={18} /> Logout</button>
                   </div>
                 </motion.div>
