@@ -51,8 +51,6 @@ function Dashboard() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({ total_notes: 0, favorite_notes: 0, pinned_notes: 0, trash_notes: 0 });
   const [wellness, setWellness] = useState(null);
-  const [activeSound, setActiveSound] = useState(null);
-  const audioRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -125,22 +123,6 @@ function Dashboard() {
     localStorage.removeItem("token");
     toast.success("Logged out");
     navigate("/");
-  };
-
-  const toggleSound = (soundType, audioUrl) => {
-    if (activeSound === soundType) {
-      if (audioRef.current) audioRef.current.pause();
-      setActiveSound(null);
-      toast.success("Ambient sound stopped");
-    } else {
-      if (audioRef.current) audioRef.current.pause();
-      const audio = new Audio(audioUrl);
-      audio.loop = true;
-      audio.play().catch(() => {});
-      audioRef.current = audio;
-      setActiveSound(soundType);
-      toast.success(`Playing ${soundType} soundscape`);
-    }
   };
 
   useEffect(() => {
@@ -269,7 +251,6 @@ function Dashboard() {
             <button onClick={() => navigate("/settings")} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]">
               <Settings size={18} /> Settings
             </button>
-            {/* Added About Link Here */}
             <button onClick={() => navigate("/about")} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]">
               <Info size={18} /> About NoteVault
             </button>
@@ -306,7 +287,6 @@ function Dashboard() {
                     <button onClick={() => navigate("/trash")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"><Trash2 size={18} /> Trash ({stats.trash_notes})</button>
                     <button onClick={() => navigate("/resources")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"><BookOpen size={18} /> Wellness Resources</button>
                     <button onClick={() => navigate("/settings")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"><Settings size={18} /> Settings</button>
-                    {/* Added About Link in Mobile Menu */}
                     <button onClick={() => navigate("/about")} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]"><Info size={18} /> About NoteVault</button>
                     <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#A35A62] hover:bg-[#FFF0F1]"><LogOut size={18} /> Logout</button>
                   </div>
@@ -377,15 +357,6 @@ function Dashboard() {
                     <h2 className="text-sm font-bold text-[#2D3142]">{currentMessages[activeTipIndex].text}</h2>
                     <p className="mt-2 text-xs leading-relaxed text-[#52796F]">Gentle reminder: You are the sky; your heavy thoughts and deadlines are just passing weather clouds.</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="mt-5 flex flex-wrap items-center justify-between border-t border-[#BEE3DB]/60 pt-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-[#116466]">Soundscapes:</span>
-                  <button onClick={() => toggleSound("Rain", "https://cdn.pixabay.com/download/audio/2021/09/06/audio_75c7423985.mp3?filename=gentle-rain-15258.mp3")} className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold transition ${activeSound === "Rain" ? "bg-[#116466] text-white" : "bg-white/80 text-[#116466] hover:bg-white"}`}>Rainfall</button>
-                  <button onClick={() => toggleSound("Forest", "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=forest-birds-and-wind-6213.mp3")} className={`cursor-pointer rounded-xl px-3 py-1.5 text-xs font-semibold transition ${activeSound === "Forest" ? "bg-[#116466] text-white" : "bg-white/80 text-[#116466] hover:bg-white"}`}>Forest</button>
-                  {activeSound && <button onClick={() => toggleSound(activeSound, "")} className="cursor-pointer rounded-xl bg-red-100 px-3 py-1.5 text-xs font-semibold text-[#B85D69]">Mute</button>}
                 </div>
               </div>
             </div>

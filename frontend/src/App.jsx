@@ -10,74 +10,80 @@ import Resources from "./pages/Resources";
 import Reflections from "./pages/Reflections";
 import WellnessArcade from "./pages/WellnessArcade";
 import About from "./pages/About";
+import GlobalAudioPlayer from "./components/GlobalAudioPlayer";
 
 function App() {
   return (
-    <Routes>
+    <>
+      {/* Persistent Global Music Player */}
+      <GlobalAudioPlayer />
 
-      {/* Public routes */}
-      <Route
-        path="/"
-        element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        }
-      />
+      <Routes>
 
-      <Route
-        path="/register"
-        element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        }
-      />
+        {/* Public routes */}
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
 
-      {/* Protected routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
 
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>
-        }
-      />
+        {/* Protected routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/trash"
-        element={
-          <ProtectedRoute>
-            <Trash />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/resources"
-        element={
-          <ProtectedRoute>
-            <Resources />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/trash"
+          element={
+            <ProtectedRoute>
+              <Trash />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route path="/reflections" element={<Reflections />} />
+        <Route
+          path="/resources"
+          element={
+            <ProtectedRoute>
+              <Resources />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route path="/wellness-arcade" element={<WellnessArcade />} />
+        <Route path="/reflections" element={<Reflections />} />
 
-      <Route path="/about" element={<About />} />
+        <Route path="/wellness-arcade" element={<WellnessArcade />} />
 
-    </Routes>
+        <Route path="/about" element={<About />} />
+
+      </Routes>
+    </>
   );
 }
 

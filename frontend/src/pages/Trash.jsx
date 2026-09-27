@@ -13,6 +13,8 @@ import {
   RotateCcw,
   Compass,
   BookOpen,
+  Sparkles,
+  Info,
 } from "lucide-react";
 
 function Trash() {
@@ -137,7 +139,10 @@ function Trash() {
             <button onClick={() => navigate("/reflections")} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] transition hover:bg-[#F7F5F0]">
               <FileText size={18} /> Reflections Vault
             </button>
-            <button className="flex w-full cursor-pointer items-center justify-between rounded-2xl bg-[#FFF0F2] px-4 py-3 text-sm font-medium text-[#B85D69]">
+            <button onClick={() => navigate("/wellness-arcade")} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] transition hover:bg-[#F7F5F0]">
+              <Sparkles size={18} /> Wellness Arcade
+            </button>
+            <button onClick={() => navigate("/trash")} className="flex w-full cursor-pointer items-center justify-between rounded-2xl bg-[#FFF0F2] px-4 py-3 text-sm font-medium text-[#B85D69]">
               <span className="flex items-center gap-3"><Trash2 size={18} /> Trash</span>
               <span className="text-xs text-[#C98B92]">{trashNotes.length}</span>
             </button>
@@ -146,6 +151,9 @@ function Trash() {
             </button>
             <button onClick={() => navigate("/settings")} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] transition hover:bg-[#F7F5F0]">
               <Settings size={18} /> Settings
+            </button>
+            <button onClick={() => navigate("/about")} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-[#77716B] transition hover:bg-[#F7F5F0]">
+              <Info size={18} /> About NoteVault
             </button>
           </div>
 
@@ -178,6 +186,9 @@ function Trash() {
                   <button onClick={() => { setShowMobileMenu(false); navigate("/reflections"); }} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]">
                     <FileText size={18} /> Reflections Vault
                   </button>
+                  <button onClick={() => { setShowMobileMenu(false); navigate("/wellness-arcade"); }} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]">
+                    <Sparkles size={18} /> Wellness Arcade
+                  </button>
                   <button className="flex w-full cursor-pointer items-center gap-3 rounded-2xl bg-[#FFF0F2] px-4 py-3.5 text-sm font-medium text-[#B85D69]">
                     <Trash2 size={18} /> Trash ({trashNotes.length})
                   </button>
@@ -186,6 +197,9 @@ function Trash() {
                   </button>
                   <button onClick={() => { setShowMobileMenu(false); navigate("/settings"); }} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]">
                     <Settings size={18} /> Settings
+                  </button>
+                  <button onClick={() => { setShowMobileMenu(false); navigate("/about"); }} className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium text-[#77716B] hover:bg-[#F7F5F0]">
+                    <Info size={18} /> About NoteVault
                   </button>
                   <button onClick={handleLogout} className="mt-1 flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm text-[#A35A62] hover:bg-[#FFF1F2]">
                     <LogOut size={18} /> Logout
