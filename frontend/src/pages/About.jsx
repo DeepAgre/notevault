@@ -44,7 +44,9 @@ function About() {
     const loadStats = async () => {
       try {
         const response = await api.get("/dashboard");
-        setStats(response.data.stats);
+        if (response.data && response.data.stats) {
+          setStats(response.data.stats);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -131,125 +133,100 @@ function About() {
             </AnimatePresence>
           </div>
 
-          <div className="mx-auto max-w-4xl">
-            {/* Title Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center pt-2"
-            >
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#F0EDFF] px-4 py-1.5 text-xs font-bold text-[#6657D8] mb-4">
-                <Sparkles size={14} /> The NoteVault Philosophy
-              </div>
-              <h1 className="text-4xl font-black tracking-tight text-[#292726] md:text-5xl">
+          <div className="mx-auto max-w-3xl pt-2">
+            {/* Page Header */}
+            <div className="mb-14">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7C6CF2]">
+                About NoteVault
+              </p>
+              <h1 className="mt-3 text-3xl md:text-4xl font-bold tracking-tight text-[#302D2A]">
                 A Safe Sanctuary for Your Mind
               </h1>
-              <p className="mt-4 text-base leading-relaxed text-[#77716B] max-w-2xl mx-auto">
+              <p className="mt-3 text-sm leading-relaxed text-[#77716B]">
                 NoteVault was created to be more than just a note-taking tool—it is a digital decompression chamber designed to help you process heavy thoughts, reduce anxiety, and honor your emotional pace.
               </p>
-            </motion.div>
+            </div>
 
-            {/* Why We Made It */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="mt-16 rounded-[32px] border border-[#E7E2D9] bg-white p-8 shadow-sm md:p-10"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E8F8F5] text-[#116466]">
-                  <Heart size={22} />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-[#302D2A]">Why We Built NoteVault</h2>
-                  <p className="text-sm text-[#77716B]">The purpose behind the platform</p>
-                </div>
-              </div>
-              <p className="mt-6 text-sm leading-8 text-[#514B45]">
-                In a world driven by constant productivity, deadlines, and digital noise, mental fatigue and silent burnout have become normal. Traditional note-taking apps are built for raw storage and task management, often making you feel pressured to be constantly "on." 
-              </p>
-              <p className="mt-4 text-sm leading-8 text-[#514B45]">
-                We built NoteVault to shift that paradigm. It provides a judgment-free, beautifully quiet container where your reflections are treated with care. Whether you are sorting through burnout, unpacking complex emotions, or looking for a moment of calm, NoteVault acts as your personal emotional anchor.
-              </p>
-            </motion.section>
+            {/* Main Content Sections */}
+            <div className="space-y-12">
+              {/* Section 1: Why We Built NoteVault */}
+              <section className="border-b border-[#EFEAE0] pb-10">
+                <h2 className="text-xl font-bold text-[#302D2A] flex items-center gap-2.5">
+                  <Heart size={20} className="text-[#116466]" />
+                  Why We Built NoteVault
+                </h2>
+                <p className="mt-4 text-sm leading-7 text-[#625B54]">
+                  In a world driven by constant productivity, deadlines, and digital noise, mental fatigue and silent burnout have become normal. Traditional note-taking apps are built for raw storage and task management, often making you feel pressured to be constantly "on."
+                </p>
+                <p className="mt-4 text-sm leading-7 text-[#625B54]">
+                  We built NoteVault to shift that paradigm. It provides a judgment-free, beautifully quiet container where your reflections are treated with care. Whether you are sorting through burnout, unpacking complex emotions, or looking for a moment of calm, NoteVault acts as your personal emotional anchor.
+                </p>
+              </section>
 
-            {/* Core Features Grid */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="mt-12"
-            >
-              <h2 className="text-2xl font-bold text-[#302D2A] text-center mb-8">What Makes NoteVault Unique</h2>
-              
-              <div className="grid gap-6 md:grid-cols-3">
-                <div className="rounded-[28px] border border-[#BEE3DB] bg-[#E8F8F5]/50 p-7">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#116466] shadow-sm mb-5">
-                    <Compass size={20} />
-                  </div>
-                  <h3 className="text-lg font-bold text-[#302D2A]">Guided Decompression</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#52796F]">
-                    Our guided reflection flow helps break down heavy thoughts into manageable perspectives and tiny, kind self-care steps.
-                  </p>
-                </div>
-
-                <div className="rounded-[28px] border border-[#F5E79B] bg-[#FFFDEB]/50 p-7">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#9A7B00] shadow-sm mb-5">
-                    <Sparkles size={20} />
-                  </div>
-                  <h3 className="text-lg font-bold text-[#302D2A]">Wellness Arcade</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#7E6922]">
-                    Interactive breathing pods, micro-resilience quests (inspired by SuperBetter), and gratitude prompts to instantly shift focus away from anxiety.
-                  </p>
-                </div>
-
-                <div className="rounded-[28px] border border-[#D5C4F4] bg-[#E9DEFF]/50 p-7">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#6D4AA0] shadow-sm mb-5">
-                    <Shield size={20} />
-                  </div>
-                  <h3 className="text-lg font-bold text-[#302D2A]">Private & Secure</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#5E4785]">
-                    Your thoughts belong to you alone. Protected with secure JWT authentication and isolated data structures for complete peace of mind.
-                  </p>
-                </div>
-              </div>
-            </motion.section>
-
-            {/* How It Works */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="mt-12 rounded-[32px] border border-[#E7E2D9] bg-white p-8 shadow-sm md:p-10"
-            >
-              <h2 className="text-2xl font-bold text-[#302D2A]">How It Works</h2>
-              <div className="mt-6 space-y-5">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F0EDFF] text-xs font-bold text-[#7C6CF2]">1</div>
+              {/* Section 2: What Makes NoteVault Unique */}
+              <section className="border-b border-[#EFEAE0] pb-10">
+                <h2 className="text-xl font-bold text-[#302D2A] flex items-center gap-2.5">
+                  <Sparkles size={20} className="text-[#7C6CF2]" />
+                  What Makes NoteVault Unique
+                </h2>
+                <div className="mt-6 space-y-6">
                   <div>
-                    <h3 className="text-sm font-bold text-[#302D2A]">Check Into Your Sanctuary Hub</h3>
-                    <p className="mt-1 text-sm text-[#77716B]">View your active writing streaks, stream global background soundscapes (Rainfall or Forest), and check your emotional spectrum scale.</p>
+                    <h3 className="text-sm font-bold text-[#302D2A] flex items-center gap-2">
+                      <Compass size={16} className="text-[#116466]" /> Guided Decompression
+                    </h3>
+                    <p className="text-xs text-[#77716B] mt-1 leading-6">
+                      Our guided reflection flow helps break down heavy thoughts into manageable perspectives and tiny, kind self-care steps.
+                    </p>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F0EDFF] text-xs font-bold text-[#7C6CF2]">2</div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#302D2A]">Log or Reflect Freely</h3>
-                    <p className="mt-1 text-sm text-[#77716B]">Use either our structured Guided Decompression format or free-form journaling to capture whatever is on your mind.</p>
+                    <h3 className="text-sm font-bold text-[#302D2A] flex items-center gap-2">
+                      <Sparkles size={16} className="text-[#9A7B00]" /> Wellness Arcade
+                    </h3>
+                    <p className="text-xs text-[#77716B] mt-1 leading-6">
+                      Interactive breathing pods, micro-resilience quests, and gratitude prompts to instantly shift focus away from anxiety.
+                    </p>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F0EDFF] text-xs font-bold text-[#7C6CF2]">3</div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#302D2A]">Engage with the Wellness Arcade</h3>
-                    <p className="mt-1 text-sm text-[#77716B]">Take a breather in our interactive pacing pod or tackle micro-quests whenever you need an emotional reset.</p>
+                    <h3 className="text-sm font-bold text-[#302D2A] flex items-center gap-2">
+                      <Shield size={16} className="text-[#6D4AA0]" /> Private & Secure
+                    </h3>
+                    <p className="text-xs text-[#77716B] mt-1 leading-6">
+                      Your thoughts belong to you alone. Protected with secure JWT authentication and isolated data structures for complete peace of mind.
+                    </p>
                   </div>
                 </div>
-              </div>
-            </motion.section>
+              </section>
+
+              {/* Section 3: How It Works */}
+              <section className="pb-6">
+                <h2 className="text-xl font-bold text-[#302D2A] flex items-center gap-2.5">
+                  <BookOpen size={20} className="text-[#C58B16]" />
+                  How It Works
+                </h2>
+                <p className="mt-4 text-sm leading-7 text-[#625B54]">
+                  Get started with your personal sanctuary in three simple steps:
+                </p>
+
+                <div className="mt-6 space-y-4">
+                  <div className="pl-4 border-l-2 border-[#7C6CF2]">
+                    <h3 className="text-sm font-bold text-[#302D2A]">1. Check Into Your Sanctuary Hub</h3>
+                    <p className="text-xs text-[#77716B] mt-1">View your active writing streaks, stream global background soundscapes (Rainfall or Forest), and check your emotional spectrum scale.</p>
+                  </div>
+
+                  <div className="pl-4 border-l-2 border-[#52B788]">
+                    <h3 className="text-sm font-bold text-[#302D2A]">2. Log or Reflect Freely</h3>
+                    <p className="text-xs text-[#77716B] mt-1">Use either our structured Guided Decompression format or free-form journaling to capture whatever is on your mind.</p>
+                  </div>
+
+                  <div className="pl-4 border-l-2 border-[#C58B16]">
+                    <h3 className="text-sm font-bold text-[#302D2A]">3. Engage with the Wellness Arcade</h3>
+                    <p className="text-xs text-[#77716B] mt-1">Take a breather in our interactive pacing pod or tackle micro-quests whenever you need an emotional reset.</p>
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
         </main>
       </div>

@@ -300,7 +300,7 @@ function Dashboard() {
             <div>
               <p className="text-sm font-medium text-[#8C857D]">Your daily emotional reflection & decompression sanctuary</p>
               <div className="flex flex-wrap items-center gap-3 mt-1">
-                <h1 className="text-4xl font-bold tracking-tight text-[#292726] md:text-5xl">Sanctuary Hub</h1>
+                <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[#292726]">Sanctuary Hub</h1>
                 <div className="flex items-center gap-1.5 rounded-full bg-[#FFF3E0] px-3.5 py-1.5 border border-[#FFE0B2] text-[#E65100] shadow-sm">
                   <Flame size={16} fill="currentColor" />
                   <span className="text-xs font-bold">{streakDays} Day Streak</span>
@@ -309,7 +309,7 @@ function Dashboard() {
               {user && <p className="mt-2 text-sm text-[#99928A]">Welcome back, {user.username}</p>}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <button onClick={() => navigate("/reflections")} className="flex cursor-pointer items-center gap-2 rounded-2xl border border-[#E3DED6] bg-white px-5 py-3 text-sm font-semibold text-[#625E59] shadow-sm transition hover:bg-[#F7F5F0]">
                 <FileText size={18} /> View All Reflections
               </button>
@@ -320,21 +320,21 @@ function Dashboard() {
           </header>
 
           {/* Companion & Emotional Spectrum Section */}
-          <div className="mt-8 grid gap-5 lg:grid-cols-3">
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
             {/* Sprout Companion */}
-            <div className="col-span-2 flex flex-col justify-between rounded-[28px] border border-[#BEE3DB] bg-gradient-to-br from-[#E8F8F5] to-[#D1F2EB] p-7 shadow-sm">
+            <div className="flex flex-col justify-between rounded-[28px] border border-[#EAE6DE] bg-white p-6 md:p-8 shadow-sm">
               <div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-[#F0ECE1] pb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-[#116466]">Sprout, Your Companion</span>
-                    <button onClick={() => setShowInfoModal("sprout")} className="cursor-pointer rounded-full p-1 text-[#116466] hover:bg-white/60 transition"><Info size={15} /></button>
+                    <button onClick={() => setShowInfoModal("sprout")} className="cursor-pointer rounded-full p-1 text-[#116466] hover:bg-[#F7F5F0] transition"><Info size={15} /></button>
                   </div>
-                  <span className="rounded-full bg-white/70 px-3 py-0.5 text-xs font-semibold text-[#116466]">{notes.length} Total Entries</span>
+                  <span className="rounded-full bg-[#E8F8F5] px-3 py-1 text-xs font-semibold text-[#116466]">{notes.length} Total Entries</span>
                 </div>
 
-                <div className="mt-5 flex flex-col sm:flex-row items-center gap-5">
+                <div className="mt-6 flex flex-col sm:flex-row items-center gap-5">
                   <div className="flex shrink-0 flex-col items-center justify-center">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-sm border border-[#A2D9CE]">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-[#E8F8F5] shadow-sm border border-[#BEE3DB]">
                       <div className="relative flex flex-col items-center">
                         <motion.div animate={{ rotate: [-3, 3, -3] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-6 flex gap-1">
                           <div className="h-5 w-3.5 rounded-full bg-[#2E8B57] origin-bottom-right -rotate-12" />
@@ -349,60 +349,56 @@ function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <span className="mt-2 text-[11px] font-bold text-[#116466]">Sprout</span>
+                    <span className="mt-2 text-xs font-bold text-[#116466]">Sprout</span>
                   </div>
 
-                  <div className="flex-1 w-full rounded-2xl bg-white/85 p-5 shadow-sm border border-[#BEE3DB] backdrop-blur-sm">
+                  <div className="flex-1 w-full rounded-2xl bg-[#FAFAF8] p-5 border border-[#EFEAE2]">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[#2E8B57] mb-1">{currentMessages[activeTipIndex].title}</p>
                     <h2 className="text-sm font-bold text-[#2D3142]">{currentMessages[activeTipIndex].text}</h2>
-                    <p className="mt-2 text-xs leading-relaxed text-[#52796F]">Gentle reminder: You are the sky; your heavy thoughts and deadlines are just passing weather clouds.</p>
+                    <p className="mt-2 text-xs leading-relaxed text-[#77716B]">Gentle reminder: You are the sky; your heavy thoughts and deadlines are just passing weather clouds.</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Emotional Spectrum Scale Card */}
-            <div className="flex flex-col justify-between rounded-[28px] border border-[#F5E79B] bg-gradient-to-br from-[#FFFDEB] to-[#FFF9D6] p-7 shadow-sm">
+            <div className="flex flex-col justify-between rounded-[28px] border border-[#EAE6DE] bg-white p-6 md:p-8 shadow-sm">
               <div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-[#F0ECE1] pb-4">
                   <div className="flex items-center gap-2">
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#9A7B00]">Emotional Spectrum Scale</p>
-                    <button onClick={() => setShowInfoModal("spectrum")} className="cursor-pointer text-[#9A7B00] hover:text-black"><Info size={14} /></button>
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#C58B16]">Emotional Spectrum Scale</p>
+                    <button onClick={() => setShowInfoModal("spectrum")} className="cursor-pointer text-[#C58B16] hover:text-black"><Info size={15} /></button>
                   </div>
+                  <span className="rounded-full bg-[#FFF3E0] px-3 py-1 text-xs font-semibold text-[#C58B16]">{emotionalSpectrum.label}</span>
                 </div>
 
-                <div className="mt-4 rounded-2xl bg-white/80 p-4 border border-[#F5E79B]/60">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-[#302D2A]">Current State</span>
-                    <span className="text-xs font-bold text-[#9A7B00] bg-[#FFF8D9] px-2.5 py-1 rounded-full">{emotionalSpectrum.label}</span>
-                  </div>
-
-                  <div className="relative my-6 px-2">
-                    <div className="flex justify-between text-[10px] font-medium text-[#8C857D] mb-2">
+                <div className="mt-6 rounded-2xl bg-[#FAFAF8] p-5 border border-[#EFEAE2]">
+                  <div className="relative my-2">
+                    <div className="flex justify-between text-[11px] font-medium text-[#77716B] mb-2">
                       <span>Carrying Weight</span>
                       <span>Processing</span>
                       <span>Grounded</span>
                     </div>
-                    <div className="h-3 w-full rounded-full bg-gradient-to-r from-[#FADBD8] via-[#FDEBD0] to-[#D5F5E3] relative shadow-inner">
-                      <div className="absolute top-1/2 -translate-y-1/2 -ml-3 h-6 w-6 rounded-full bg-[#D4A373] border-2 border-white shadow-md transition-all duration-500" style={{ left: `${emotionalSpectrum.position}%` }} />
+                    <div className="h-3.5 w-full rounded-full bg-gradient-to-r from-[#FADBD8] via-[#FDEBD0] to-[#D5F5E3] relative shadow-inner">
+                      <div className="absolute top-1/2 -translate-y-1/2 -ml-3 h-6 w-6 rounded-full bg-[#C58B16] border-2 border-white shadow-md transition-all duration-500" style={{ left: `${emotionalSpectrum.position}%` }} />
                     </div>
                   </div>
 
-                  <p className="mt-2 text-[11px] leading-relaxed text-[#77716B]">{emotionalSpectrum.message}</p>
+                  <p className="mt-4 text-xs leading-relaxed text-[#77716B]">{emotionalSpectrum.message}</p>
                 </div>
               </div>
 
-              <div className="mt-5 border-t border-[#F5E79B]/60 pt-3">
-                <p className="text-[10px] text-[#8C857D] italic text-center">A safe, judgment-free space for your daily thoughts</p>
+              <div className="mt-6 border-t border-[#F0ECE1] pt-3">
+                <p className="text-[11px] text-[#77716B] italic text-center">A safe, judgment-free space for your daily thoughts</p>
               </div>
             </div>
           </div>
 
           {/* Writing Streak & Milestones Section */}
-          <section className="mt-8 rounded-[28px] border border-[#E7E2D9] bg-white p-6 shadow-sm mb-12">
-            <div className="flex items-center justify-between">
+          <section className="mt-8 rounded-[28px] border border-[#EAE6DE] bg-white p-6 md:p-8 shadow-sm mb-12">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FFF3E0] text-[#E65100]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF3E0] text-[#E65100]">
                   <Award size={22} />
                 </div>
                 <div>
@@ -410,9 +406,9 @@ function Dashboard() {
                   <p className="text-xs text-[#77716B]">Consistent daily reflections unlock special milestone badges.</p>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="flex sm:block items-center justify-between">
                 <span className="text-2xl font-bold text-[#E65100]">{streakDays}</span>
-                <p className="text-[11px] font-semibold text-[#77716B] uppercase">Days Active</p>
+                <p className="text-[11px] font-semibold text-[#77716B] uppercase sm:text-right">Days Active</p>
               </div>
             </div>
 
