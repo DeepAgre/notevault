@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -12,11 +12,24 @@ import WellnessArcade from "./pages/WellnessArcade";
 import About from "./pages/About";
 import GlobalAudioPlayer from "./components/GlobalAudioPlayer";
 
+// Helper component to conditionally display the global player only on authenticated pages
+function ConditionalAudioPlayer() {
+  const location = useLocation();
+  const publicPaths = ["/", "/register"];
+
+  // If the user is on the login or register page, do not render the audio player
+  if (publicPaths.includes(location.pathname)) {
+    return null;
+  }
+
+  return <GlobalAudioPlayer />;
+}
+
 function App() {
   return (
     <>
-      {/* Persistent Global Music Player */}
-      <GlobalAudioPlayer />
+      {/* Conditionally rendered Persistent Global Music Player */}
+      <ConditionalAudioPlayer />
 
       <Routes>
 
