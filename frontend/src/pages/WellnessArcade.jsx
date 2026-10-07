@@ -149,8 +149,8 @@ function WellnessArcade() {
 
   const triggerCelebration = (type = "quests") => {
     confetti({
-      particleCount: 160,
-      spread: 100,
+      particleCount: 180,
+      spread: 110,
       origin: { y: 0.5 },
       colors: ["#7C6CF2", "#38bdf8", "#34d399", "#fbbf24", "#f472b6"],
     });
@@ -172,14 +172,20 @@ function WellnessArcade() {
   };
 
   const toggleQuestCompletion = (id) => {
-    setQuests((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, completed: !q.completed } : q))
-    );
+    setQuests((prev) => {
+      const updated = prev.map((q) => (q.id === id ? { ...q, completed: !q.completed } : q));
+      const newlyCompletedAll = updated.every((q) => q.completed);
+      
+      // Automatically trigger celebration when the last task is checked!
+      if (newlyCompletedAll) {
+        setTimeout(() => triggerCelebration("quests"), 250);
+      }
+      return updated;
+    });
     toast.success("Quest updated");
   };
 
   const completedCount = quests.filter((q) => q.completed).length;
-  const allCompleted = completedCount === quests.length;
 
   const nextGratitudePrompt = () => {
     setGratitudeIndex((prev) => (prev + 1) % gratitudePrompts.length);
@@ -384,7 +390,23 @@ function WellnessArcade() {
                       </span>
                     </div>
 
-                    <div className="mt-8 space-y-3">
+                    {/* TOP PROMINENT CELEBRATION BUTTON (GUARANTEED NO SCROLL NEEDED) */}
+                    <div className="mt-6 flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#F0EDFF] to-[#EAFBF7] p-4 border border-[#D4CFF5]">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#6657D8]">Ready to celebrate?</p>
+                        <p className="text-xs text-[#625E59]">Click anytime to test your reward and trigger confetti!</p>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => triggerCelebration("quests")}
+                        className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#7C6CF2] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#6E5EE5]"
+                      >
+                        <PartyPopper size={15} /> Celebrate Now 🎉
+                      </motion.button>
+                    </div>
+
+                    <div className="mt-6 space-y-3">
                       {quests.map((quest) => (
                         <div key={quest.id} onClick={() => toggleQuestCompletion(quest.id)} className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition ${quest.completed ? "border-[#C7E9DF] bg-[#F4FBF9]" : "border-[#EFEAE2] bg-[#FAFAF7] hover:border-[#DCD5C9]"}`}>
                           <div className="flex items-center gap-3">
@@ -396,24 +418,6 @@ function WellnessArcade() {
                           <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#77716B] border border-[#EFEAE2]">{quest.category}</span>
                         </div>
                       ))}
-                    </div>
-
-                    {/* ALWAYS VISIBLE CELEBRATION / SUBMISSION BUTTON */}
-                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-[#F7F5F0] p-5 border border-[#EAE6DE]">
-                      <div>
-                        <p className="text-sm font-bold text-[#302D2A]">Ready to claim your reward?</p>
-                        <p className="text-xs text-[#77716B] mt-0.5">
-                          {allCompleted ? "All quests completed! Click to celebrate." : `Complete remaining ${quests.length - completedCount} tasks or click to celebrate your progress.`}
-                        </p>
-                      </div>
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => triggerCelebration("quests")}
-                        className="flex cursor-pointer items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7C6CF2] to-[#08758E] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-[#7C6CF2]/20 transition"
-                      >
-                        <PartyPopper size={18} /> Celebrate Completion 🎉
-                      </motion.button>
                     </div>
                   </div>
                 )}
