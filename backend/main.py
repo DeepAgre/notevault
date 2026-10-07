@@ -1,12 +1,12 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends, APIRouter
 from database import engine, Base, get_db
-from models import User
+from models import User, Feedback
 from crud import (
     create_note, create_user, delete_note, get_notes, get_trash, login_user,
     update_note, toggle_pin_note, toggle_favorite_note, restore_note,
     get_note_stats, permanently_delete_note, get_dashboard_data,
-    share_note, get_shared_notes
+    share_note, get_shared_notes, get_feedbacks, create_feedback
 )
 from sqlalchemy.orm import Session
 from auth import get_current_user
@@ -20,9 +20,10 @@ from schemas import (
     NoteShareRequest,
     UserLogin,
     UserRegister,
-    UserResponse
+    UserResponse,
+    FeedbackCreate,
+    FeedbackResponse
 )
-
 
 app = FastAPI()
 router = APIRouter(prefix="/api")
@@ -138,6 +139,7 @@ def note_stats(
 ):
     return get_note_stats(db, current_user)
 
+
 @router.post("/notes/{note_id}/share")
 def share_note_with_user(
     note_id: int,
@@ -151,6 +153,7 @@ def share_note_with_user(
         note_id,
         share_request.recipient
     )
+
 
 @router.get("/notes/shared", response_model=list[NoteResponse])
 def get_shared_notes_for_user(
@@ -213,6 +216,23 @@ def wellness_insights(
         "status": status,
         "total_analyzed": len(scores)
     }
+
+# --- NEW FEEDBACK ENDPOINTS ---
+
+@router.get("/feedbacks", response_model=list[FeedbackResponse])
+def fetch_feedbacks(db: Session = Depends(get_db)):
+    """Fetch the 5 most recent feedback entries for the dashboard queue"""
+    return get_feedbacks(db)
+
+
+@router.post("/feedbacks", response_model=FeedbackResponse)
+def submit_feedback(
+    feedback: FeedbackCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user) 
+):
+    """Submit a new feedback entry to the database"""
+    return create_feedback(db, feedback)
 
 
 app.include_router(router)

@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from database import Base
 
-
 class User(Base):
     __tablename__ = "users"
 
@@ -13,7 +12,6 @@ class User(Base):
     password = Column(String, nullable=False)
 
     notes = relationship("Note", back_populates="owner")
-
 
 class Note(Base):
     __tablename__ = "notes"
@@ -64,3 +62,14 @@ class NoteShare(Base):
             name="uq_note_recipient_share"
         ),
     )
+
+# --- NEW FEEDBACK TABLE ---
+class Feedback(Base):
+    __tablename__ = "feedbacks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    accuracy = Column(String, nullable=False)
+    rating = Column(Integer, nullable=False)
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

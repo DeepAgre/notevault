@@ -1,8 +1,9 @@
-from models import User, Note, NoteShare
-from schemas import NoteCreate, NoteUpdate, UserRegister, UserLogin
+from models import User, Note, NoteShare, Feedback
+from schemas import NoteCreate, NoteUpdate, UserRegister, UserLogin, FeedbackCreate
 from auth import hash_password, verify_password, create_access_token
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from datetime import datetime, timezone, timedelta
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
@@ -505,3 +506,31 @@ def get_shared_notes(db: Session, current_user: User):
     ).all()
 
     return shared_notes
+
+# --- NEW FEEDBACK CRUD LOGIC ---
+
+def get_feedbacks(db: Session):
+    """Fetch the 5 most recent feedback entries for the dashboard queue"""
+    return db.query(Feedback).order_by(desc(Feedback.created_at)).limit(5).all()
+
+def create_feedback(db: Session, feedback: FeedbackCreate):
+    """Submit a new feedback entry and enforce max 5 limit in DB"""
+    new_feedback = Feedback(
+        name=feedback.name,
+        accuracy=feedback.accuracy,
+        rating=feedback.rating,
+        comment=feedback.comment
+    )
+    db.add(new_feedback)
+    db.commit()
+    db.refresh(new_feedback)
+    
+    # Enforce the circular queue logic in the DB (keep only latest 5)
+    total_feedbacks = db.query(Feedback).count()
+    if total_feedbacks > 5:
+        oldest_feedbacks = db.query(Feedback).order_by(Feedback.created_at).limit(total_feedbacks - 5).all()
+        for old in oldest_feedbacks:
+            db.delete(old)
+        db.commit()
+        
+    return new_feedback

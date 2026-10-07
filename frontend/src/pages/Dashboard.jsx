@@ -52,19 +52,16 @@ function Dashboard() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const mobileMenuRef = useRef(null);
 
-  // Feedback Form States for Examiner Credibility & Validation
+  // Feedback Form States
   const [feedbackName, setFeedbackName] = useState("");
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [feedbackAccuracy, setFeedbackAccuracy] = useState("Very Accurate");
   const [feedbackComment, setFeedbackComment] = useState("");
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
-  // Circular Queue State for Feedbacks (keeps max 5 recent items for display)
-  const [feedbackQueue, setFeedbackQueue] = useState([
-    { id: 1, name: "Prof. R. Deshmukh", accuracy: "Very Accurate", rating: 5, comment: "The cognitive reframing guide and spectrum score align well with standard mental wellness heuristics." },
-    { id: 2, name: "Swaraj Patil (Peer Review)", accuracy: "Moderately Accurate", rating: 4, comment: "Helped ground my thoughts after a long study session. Very clean UI." },
-    { id: 3, name: "Dr. A. Kulkarni", accuracy: "Very Accurate", rating: 5, comment: "Excellent academic application combining FastAPI backends with psychological pacing." }
-  ]);
+  // Dynamic Feedback Queue States
+  const [feedbackQueue, setFeedbackQueue] = useState([]);
+  const [activeFeedbackIndex, setActiveFeedbackIndex] = useState(0);
 
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({ total_notes: 0, favorite_notes: 0, pinned_notes: 0, trash_notes: 0 });
@@ -137,6 +134,15 @@ function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  // Carousel auto-scroll for feedbacks (runs every 5 seconds)
+  useEffect(() => {
+    if (feedbackQueue.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveFeedbackIndex((prev) => (prev + 1) % feedbackQueue.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [feedbackQueue.length]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     toast.success("Logged out");
@@ -156,12 +162,19 @@ function Dashboard() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const response = await api.get("/dashboard");
-        const wellnessRes = await api.get("/wellness/insights").catch(() => null);
-        setNotes(response.data.notes);
-        setUser(response.data.user);
-        setStats(response.data.stats);
+        // Fetch dashboard data AND feedbacks from database concurrently
+        const [dashboardRes, wellnessRes, feedbacksRes] = await Promise.all([
+          api.get("/dashboard"),
+          api.get("/wellness/insights").catch(() => null),
+          api.get("/feedbacks").catch(() => ({ data: [] })) // Fallback if no reviews exist yet
+        ]);
+
+        setNotes(dashboardRes.data.notes);
+        setUser(dashboardRes.data.user);
+        setStats(dashboardRes.data.stats);
+
         if (wellnessRes) setWellness(wellnessRes.data);
+        if (feedbacksRes && feedbacksRes.data) setFeedbackQueue(feedbacksRes.data);
       } catch (error) {
         console.log(error);
         toast.error("Failed to load sanctuary");
@@ -223,8 +236,8 @@ function Dashboard() {
     }
   };
 
-  // Circular Queue Logic: Push new feedback and maintain max capacity of 5 items
-  const handleFeedbackSubmit = (e) => {
+  // Submit Feedback to Database
+  const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     if (!feedbackName.trim()) {
       toast.error("Please enter your name for examiner credibility");
@@ -232,28 +245,31 @@ function Dashboard() {
     }
 
     setSubmittingFeedback(true);
-    setTimeout(() => {
-      const newFeedback = {
-        id: Date.now(),
+    try {
+      const payload = {
         name: feedbackName.trim(),
         accuracy: feedbackAccuracy,
         rating: feedbackRating,
         comment: feedbackComment.trim() || "Validated spectrum score and advice module.",
       };
 
-      setFeedbackQueue((prev) => {
-        const updated = [newFeedback, ...prev];
-        if (updated.length > 5) {
-          updated.pop(); // Remove oldest item (Circular Queue FIFO behavior)
-        }
-        return updated;
-      });
-
-      setSubmittingFeedback(false);
+      // Save to database
+      const res = await api.post("/feedbacks", payload);
+      
+      // Update local state queue so it shows up immediately
+      setFeedbackQueue((prev) => [res.data, ...prev]);
+      
       toast.success("Feedback recorded and added to live validation queue!");
       setFeedbackName("");
       setFeedbackComment("");
-    }, 500);
+      setFeedbackRating(5);
+      setActiveFeedbackIndex(0); // Instantly show the newly submitted feedback
+    } catch (error) {
+      toast.error("Failed to save validation feedback");
+      console.log(error);
+    } finally {
+      setSubmittingFeedback(false);
+    }
   };
 
   if (loading) {
@@ -268,13 +284,13 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] text-[#292726] pb-16">
+    <div className="min-h-screen bg-[#FFFDF8] text-[#292726] pb-16 overflow-x-hidden">
       <div className="pointer-events-none fixed -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-[#D9F5FF] blur-3xl opacity-60" />
       <div className="pointer-events-none fixed -bottom-40 -right-40 h-[420px] w-[420px] rounded-full bg-[#F0E5FF] blur-3xl opacity-60" />
 
       <div className="relative flex min-h-screen">
         {/* Desktop Sidebar */}
-        <aside className="hidden w-[250px] shrink-0 border-r border-[#EAE6DE] bg-white/70 px-5 py-7 backdrop-blur-xl md:flex md:flex-col">
+        <aside className="hidden w-[250px] shrink-0 border-r border-[#EAE6DE] bg-white/70 px-5 py-7 backdrop-blur-xl md:flex md:flex-col z-10">
           <button onClick={() => navigate("/dashboard")} className="flex cursor-pointer items-center gap-3 px-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#7C6CF2] text-white shadow-sm">
               <FileText size={20} />
@@ -315,7 +331,7 @@ function Dashboard() {
         </aside>
 
         {/* Main Content Area */}
-        <main className="min-w-0 flex-1 px-5 pt-5 md:px-10 md:py-8 xl:px-14">
+        <main className="min-w-0 flex-1 px-5 pt-5 md:px-10 md:py-8 xl:px-14 z-10">
           {/* Mobile top bar */}
           <div className="mb-6 flex items-center justify-between md:hidden" ref={mobileMenuRef}>
             <button onClick={() => navigate("/dashboard")} className="flex cursor-pointer items-center gap-2">
@@ -445,15 +461,15 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* System Validation & Feedback Section with Circular Queue Display */}
+          {/* System Validation & Feedback Section with Animated Queue */}
           <section className="mt-8 rounded-[28px] border border-[#EAE6DE] bg-white p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 border-b border-[#F0ECE1] pb-4">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F0EDFF] text-[#7C6CF2]">
                 <MessageSquareHeart size={22} />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#302D2A]">System Validation & Examiner Feedback Queue</h2>
-                <p className="text-xs text-[#77716B]">Live circular queue displaying user & examiner validation scores for the emotional spectrum model.</p>
+                <h2 className="text-lg font-bold text-[#302D2A]">System Validation & Examiner Feedback</h2>
+                <p className="text-xs text-[#77716B]">Submit research validation. Live reviews rotate automatically below.</p>
               </div>
             </div>
 
@@ -531,50 +547,73 @@ function Dashboard() {
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
                     <>
-                      <Check size={16} /> Record Feedback in Queue
+                      <Check size={16} /> Save to Database & View
                     </>
                   )}
                 </button>
               </form>
 
-              {/* Circular Queue Display Box */}
+              {/* Animated Carousel Display Box */}
               <div className="flex flex-col rounded-2xl border border-[#EFEAE2] bg-[#FAFAF8] p-5">
-                <div className="flex items-center justify-between border-b border-[#EFEAE2] pb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#7C6CF2]">Live Circular Queue (FIFO Log)</span>
-                  <span className="rounded-full bg-[#E8F8F5] px-2.5 py-0.5 text-[10px] font-bold text-[#116466]">Max 5 Records</span>
+                <div className="flex items-center justify-between border-b border-[#EFEAE2] pb-3 mb-4">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#7C6CF2]">Live Validation Feed</span>
+                  <span className="rounded-full bg-[#E8F8F5] px-2.5 py-0.5 text-[10px] font-bold text-[#116466]">
+                    {feedbackQueue.length} Active Records
+                  </span>
                 </div>
 
-                <div className="mt-4 space-y-3 overflow-y-auto max-h-[280px] pr-1">
-                  {feedbackQueue.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl border border-[#E6E1D6] bg-white p-3.5 shadow-xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F0EDFF] text-[10px] font-bold text-[#7C6CF2]">
-                            #{index + 1}
-                          </span>
-                          <h3 className="text-xs font-bold text-[#302D2A]">{item.name}</h3>
+                {/* Relative container prevents absolute children from breaking layout */}
+                <div className="relative h-[180px] w-full overflow-hidden rounded-xl bg-transparent">
+                  <AnimatePresence initial={false}>
+                    {feedbackQueue.length > 0 ? (
+                      <motion.div
+                        key={feedbackQueue[activeFeedbackIndex]?.id || activeFeedbackIndex}
+                        initial={{ opacity: 0, x: 100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        className="absolute inset-0 flex flex-col justify-center rounded-xl border border-[#E6E1D6] bg-white p-5 shadow-xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F0EDFF] text-xs font-bold text-[#7C6CF2]">
+                              <User size={13} />
+                            </span>
+                            <h3 className="text-sm font-bold text-[#302D2A]">{feedbackQueue[activeFeedbackIndex]?.name}</h3>
+                          </div>
+                          <div className="flex items-center gap-1 text-[#E65100]">
+                            <Star size={14} fill="currentColor" />
+                            <span className="text-xs font-bold">{feedbackQueue[activeFeedbackIndex]?.rating}/5</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-[#E65100]">
-                          <Star size={13} fill="currentColor" />
-                          <span className="text-xs font-bold">{item.rating}/5</span>
+                        <p className="mt-3 text-sm italic text-[#625E59] flex items-start gap-2 line-clamp-3 leading-relaxed">
+                          <Quote size={14} className="shrink-0 text-[#AAA39A] mt-0.5" />
+                          "{feedbackQueue[activeFeedbackIndex]?.comment}"
+                        </p>
+                        <div className="mt-4 flex items-center justify-between text-[11px] text-[#8C857D] border-t border-[#F5F2EC] pt-3">
+                          <span>Accuracy: <strong>{feedbackQueue[activeFeedbackIndex]?.accuracy}</strong></span>
+                          <span className="rounded-md bg-[#F4F1EA] px-2 py-1 font-mono text-[9px] uppercase tracking-widest text-[#77716B]">Verified Entry</span>
                         </div>
+                      </motion.div>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-sm text-[#A39E93] border border-dashed border-[#D5D0C5] rounded-xl bg-[#FCFBF8]">
+                        No validations in database yet. Be the first!
                       </div>
-                      <p className="mt-2 text-xs italic text-[#625E59] flex items-start gap-1.5">
-                        <Quote size={12} className="shrink-0 text-[#AAA39A] mt-0.5" />
-                        "{item.comment}"
-                      </p>
-                      <div className="mt-2 flex items-center justify-between text-[10px] text-[#8C857D] border-t border-[#F5F2EC] pt-2">
-                        <span>Accuracy: <strong>{item.accuracy}</strong></span>
-                        <span className="rounded bg-[#F4F1EA] px-2 py-0.5 font-mono text-[9px]">Queue Status: Active</span>
-                      </div>
-                    </motion.div>
-                  ))}
+                    )}
+                  </AnimatePresence>
                 </div>
+
+                {/* Progress Indicators */}
+                {feedbackQueue.length > 1 && (
+                  <div className="mt-4 flex justify-center gap-1.5">
+                    {feedbackQueue.map((_, i) => (
+                      <div 
+                        key={i} 
+                        className={`h-1.5 rounded-full transition-all duration-300 ${i === activeFeedbackIndex ? "w-4 bg-[#7C6CF2]" : "w-1.5 bg-[#D5D0C5]"}`} 
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </section>

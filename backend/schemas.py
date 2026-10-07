@@ -52,3 +52,22 @@ class NoteUpdate(BaseModel):
 
 class NoteShareRequest(BaseModel):
     recipient: str = Field(min_length=1, max_length=100)
+
+# --- NEW FEEDBACK SCHEMAS ---
+
+class FeedbackCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    accuracy: str = Field(min_length=1, max_length=100)
+    rating: int = Field(ge=1, le=5, description="Star rating from 1 to 5")
+    comment: str | None = Field(default=None, max_length=1000)
+
+
+class FeedbackResponse(BaseModel):
+    id: int
+    name: str
+    accuracy: str
+    rating: int
+    comment: str | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
