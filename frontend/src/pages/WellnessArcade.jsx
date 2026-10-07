@@ -42,10 +42,10 @@ function WellnessArcade() {
 
   // Game 2: SuperBetter Micro-Quests States
   const [quests, setQuests] = useState([
-    { id: 1, title: "Take 5 slow, deep breaths away from screens", category: "Mental", completed: false, loading: false },
-    { id: 2, title: "Drink a full glass of water and stretch your shoulders", category: "Physical", completed: false, loading: false },
-    { id: 3, title: "Write down one thing you accomplished today", category: "Emotional", completed: false, loading: false },
-    { id: 4, title: "Send a kind message or text to a friend or ally", category: "Social", completed: false, loading: false },
+    { id: 1, title: "Take 5 slow, deep breaths away from screens", category: "Mental", completed: false },
+    { id: 2, title: "Drink a full glass of water and stretch your shoulders", category: "Physical", completed: false },
+    { id: 3, title: "Write down one thing you accomplished today", category: "Emotional", completed: false },
+    { id: 4, title: "Send a kind message or text to a friend or ally", category: "Social", completed: false },
   ]);
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
   const [celebrationData, setCelebrationData] = useState({
@@ -98,7 +98,6 @@ function WellnessArcade() {
     loadDashboardData();
   }, []);
 
-  // Handler to select and load a game with proper loading spinner & prevention
   const selectGame = (gameId) => {
     if (gameLoading) return;
     setGameLoading(true);
@@ -148,11 +147,10 @@ function WellnessArcade() {
     setBreathTimer(4);
   };
 
-  // Trigger celebration popup & confetti blast
   const triggerCelebration = (type = "quests") => {
     confetti({
-      particleCount: 150,
-      spread: 90,
+      particleCount: 160,
+      spread: 100,
       origin: { y: 0.5 },
       colors: ["#7C6CF2", "#38bdf8", "#34d399", "#fbbf24", "#f472b6"],
     });
@@ -174,18 +172,14 @@ function WellnessArcade() {
   };
 
   const toggleQuestCompletion = (id) => {
-    setQuests((prev) => {
-      const updated = prev.map((q) => (q.id === id ? { ...q, completed: !q.completed } : q));
-      const newlyCompletedAll = updated.every((q) => q.completed);
-      
-      // If user just checked the last remaining quest, automatically celebrate!
-      if (newlyCompletedAll) {
-        setTimeout(() => triggerCelebration("quests"), 300);
-      }
-      return updated;
-    });
-    toast.success("Quest progress updated");
+    setQuests((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, completed: !q.completed } : q))
+    );
+    toast.success("Quest updated");
   };
+
+  const completedCount = quests.filter((q) => q.completed).length;
+  const allCompleted = completedCount === quests.length;
 
   const nextGratitudePrompt = () => {
     setGratitudeIndex((prev) => (prev + 1) % gratitudePrompts.length);
@@ -386,7 +380,7 @@ function WellnessArcade() {
                         <p className="mt-1 text-sm text-[#77716B]">Check off small actions to build psychological momentum and emotional energy.</p>
                       </div>
                       <span className="rounded-full bg-[#EAFBF7] px-4 py-1.5 text-xs font-semibold text-[#1B8062] w-fit">
-                        {quests.filter((q) => q.completed).length} / {quests.length} Completed
+                        {completedCount} / {quests.length} Completed
                       </span>
                     </div>
 
@@ -404,14 +398,19 @@ function WellnessArcade() {
                       ))}
                     </div>
 
-                    {/* PROMINENT CELEBRATION BUTTON */}
-                    <div className="mt-8 pt-4 border-t border-[#EFEAE2] flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <p className="text-xs text-[#77716B]">Finished your tasks? Click to claim your mood boost & confetti!</p>
+                    {/* ALWAYS VISIBLE CELEBRATION / SUBMISSION BUTTON */}
+                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-[#F7F5F0] p-5 border border-[#EAE6DE]">
+                      <div>
+                        <p className="text-sm font-bold text-[#302D2A]">Ready to claim your reward?</p>
+                        <p className="text-xs text-[#77716B] mt-0.5">
+                          {allCompleted ? "All quests completed! Click to celebrate." : `Complete remaining ${quests.length - completedCount} tasks or click to celebrate your progress.`}
+                        </p>
+                      </div>
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => triggerCelebration("quests")}
-                        className="flex cursor-pointer items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7C6CF2] to-[#08758E] px-7 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#7C6CF2]/20 transition"
+                        className="flex cursor-pointer items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7C6CF2] to-[#08758E] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-[#7C6CF2]/20 transition"
                       >
                         <PartyPopper size={18} /> Celebrate Completion 🎉
                       </motion.button>
