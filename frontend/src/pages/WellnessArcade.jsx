@@ -48,9 +48,15 @@ function WellnessArcade() {
     { id: 4, title: "Send a kind message or text to a friend or ally", category: "Social", completed: false, loading: false },
   ]);
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
+  const [celebrationData, setCelebrationData] = useState({
+    title: "",
+    message: "",
+    quote: "",
+  });
 
   // Game 3: Gratitude Scavenger Hunt States
   const [gratitudeIndex, setGratitudeIndex] = useState(0);
+  const [gratitudeCompleted, setGratitudeCompleted] = useState(false);
   const gratitudePrompts = [
     "Find something within arm's reach that has a comforting texture. Touch it mindfully for 10 seconds.",
     "Look out a window or at the sky. Notice one detail you usually overlook.",
@@ -149,24 +155,44 @@ function WellnessArcade() {
     );
   };
 
-  // Check Quest Completion and trigger confetti celebration if 100% done
-  const handleCheckCompletion = () => {
+  // Check Micro-Resilience Quests Completion
+  const handleCheckQuestsCompletion = () => {
     const completedCount = quests.filter((q) => q.completed).length;
 
     if (completedCount === quests.length) {
-      // Trigger gorgeous confetti blast
       confetti({
-        particleCount: 120,
-        spread: 70,
+        particleCount: 130,
+        spread: 80,
         origin: { y: 0.6 },
         colors: ["#7C6CF2", "#38bdf8", "#34d399", "#fbbf24", "#f472b6"],
       });
+      setCelebrationData({
+        title: "Incredible Job, Champion! 🌟",
+        message: "You successfully completed all micro-resilience actions today. Small wins compound into profound inner strength. Remember that progress isn't about perfection—it's about showing up for yourself with patience and kindness.",
+        quote: "“You are doing better than you think. Take a deep breath and carry this calm forward.”",
+      });
       setShowCelebrationModal(true);
     } else {
-      toast(`You've completed ${completedCount} of ${quests.length} quests. Finish them all to unlock your reward!`, {
+      toast(`You've completed ${completedCount} of ${quests.length} quests. Finish them all to unlock your celebration!`, {
         icon: '🌱',
       });
     }
+  };
+
+  // Check Gratitude Scavenger Hunt Completion
+  const handleCheckGratitudeCompletion = () => {
+    confetti({
+      particleCount: 130,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ["#A63D67", "#FFDDEB", "#34d399", "#fbbf24", "#7C6CF2"],
+    });
+    setCelebrationData({
+      title: "Mindful Awareness Unlocked! ✨",
+      message: "By actively engaging with your immediate surroundings, you broke the loop of stress and grounded your mind in the present moment. Your environment holds quiet pockets of peace whenever you choose to notice them.",
+      quote: "“The present moment is filled with joy and happiness. If you are attentive, you will see it.”",
+    });
+    setShowCelebrationModal(true);
   };
 
   const nextGratitudePrompt = () => {
@@ -386,12 +412,12 @@ function WellnessArcade() {
                       ))}
                     </div>
 
-                    {/* NEW TEACHER-REQUESTED TASK COMPLETION BUTTON */}
+                    {/* TASK COMPLETION BUTTON */}
                     <div className="mt-8 flex justify-center">
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={handleCheckCompletion}
+                        onClick={handleCheckQuestsCompletion}
                         className="flex cursor-pointer items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7C6CF2] to-[#08758E] px-7 py-4 text-sm font-semibold text-white shadow-lg shadow-[#7C6CF2]/20 transition"
                       >
                         <PartyPopper size={19} /> Check Task Completion & Celebrate 🎉
@@ -407,13 +433,18 @@ function WellnessArcade() {
                     <p className="mt-2 text-sm text-[#77716B]">Shift focus away from internal stress by grounding yourself in your immediate environment.</p>
 
                     <div className="my-10 w-full max-w-lg rounded-[28px] border border-[#F7BED5] bg-[#FFDDEB]/40 p-8 shadow-sm">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-[#A63D67]">Prompt Challenge</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-[#A63D67]">Prompt Challenge ({gratitudeIndex + 1} of {gratitudePrompts.length})</p>
                       <p className="mt-4 text-lg font-medium leading-8 text-[#302D2A]">{gratitudePrompts[gratitudeIndex]}</p>
                     </div>
 
-                    <button onClick={nextGratitudePrompt} className="flex cursor-pointer items-center gap-2 rounded-2xl bg-[#A63D67] px-6 py-3.5 text-sm font-semibold text-white shadow-md hover:bg-[#94335A]">
-                      <RefreshCw size={17} /> Next Challenge
-                    </button>
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                      <button onClick={nextGratitudePrompt} className="flex cursor-pointer items-center gap-2 rounded-2xl border border-[#E7E2D9] bg-white px-6 py-3.5 text-sm font-semibold text-[#77716B] shadow-sm hover:bg-[#F7F5F0]">
+                        <RefreshCw size={17} /> Next Challenge Prompt
+                      </button>
+                      <button onClick={handleCheckGratitudeCompletion} className="flex cursor-pointer items-center gap-2 rounded-2xl bg-[#A63D67] px-7 py-3.5 text-sm font-semibold text-white shadow-md hover:bg-[#94335A]">
+                        <PartyPopper size={18} /> Complete & Celebrate Hunt 🎉
+                      </button>
+                    </div>
                   </div>
                 )}
               </motion.div>
@@ -431,22 +462,22 @@ function WellnessArcade() {
                 <HeartHandshake size={32} />
               </div>
 
-              <h2 className="mt-6 text-2xl font-bold text-[#302D2A]">Incredible Job, Champion! 🌟</h2>
+              <h2 className="mt-6 text-2xl font-bold text-[#302D2A]">{celebrationData.title}</h2>
               
               <div className="mt-4 rounded-2xl bg-[#FAFAF8] p-5 border border-[#EFEAE2] text-left">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#116466] mb-1">Mindset Growth Advice</p>
                 <p className="text-sm leading-relaxed text-[#625E59]">
-                  You successfully completed all micro-resilience actions today. Small wins compound into profound inner strength. Remember that progress isn't about perfection—it's about showing up for yourself with patience and kindness.
+                  {celebrationData.message}
                 </p>
               </div>
 
-              <p className="mt-4 text-xs italic text-[#8C857D]">"You are doing better than you think. Take a deep breath and carry this calm forward."</p>
+              <p className="mt-4 text-xs italic text-[#8C857D]">{celebrationData.quote}</p>
 
               <div className="mt-7 flex gap-3">
                 <button
                   onClick={() => {
                     setShowCelebrationModal(false);
-                    setQuests(quests.map((q) => ({ ...q, completed: false }))); // Reset for next time
+                    setQuests(quests.map((q) => ({ ...q, completed: false })));
                   }}
                   className="flex-1 cursor-pointer rounded-2xl border border-[#E5E0D8] bg-white py-3 text-sm font-semibold text-[#77716B] hover:bg-[#F7F5F0]"
                 >
