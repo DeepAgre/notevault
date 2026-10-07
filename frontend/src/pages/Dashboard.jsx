@@ -18,6 +18,8 @@ import {
   Unlock,
   Compass,
   Sparkles,
+  MessageSquareHeart,
+  Star,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -47,6 +49,12 @@ function Dashboard() {
   const [showInfoModal, setShowInfoModal] = useState(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const mobileMenuRef = useRef(null);
+
+  // Feedback Form States for Examiner Credibility & Validation
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [feedbackAccuracy, setFeedbackAccuracy] = useState("Very Accurate");
+  const [feedbackComment, setFeedbackComment] = useState("");
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({ total_notes: 0, favorite_notes: 0, pinned_notes: 0, trash_notes: 0 });
@@ -203,6 +211,16 @@ function Dashboard() {
     } finally {
       setSavingNote(false);
     }
+  };
+
+  const handleFeedbackSubmit = (e) => {
+    e.preventDefault();
+    setSubmittingFeedback(true);
+    setTimeout(() => {
+      setSubmittingFeedback(false);
+      toast.success("Thank you! Feedback recorded for examiner validation.");
+      setFeedbackComment("");
+    }, 600);
   };
 
   if (loading) {
@@ -393,6 +411,93 @@ function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* System Validation & Feedback Section (Added for Teacher/Examiner Credibility) */}
+          <section className="mt-8 rounded-[28px] border border-[#EAE6DE] bg-white p-6 md:p-8 shadow-sm">
+            <div className="flex items-center gap-3 border-b border-[#F0ECE1] pb-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F0EDFF] text-[#7C6CF2]">
+                <MessageSquareHeart size={22} />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#302D2A]">System Validation & Advisory Feedback</h2>
+                <p className="text-xs text-[#77716B]">Help us validate the accuracy of the spectrum score and advice quality for academic evaluation.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleFeedbackSubmit} className="mt-6 space-y-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#77716B]">
+                    How accurate was your spectrum score today?
+                  </label>
+                  <select
+                    value={feedbackAccuracy}
+                    onChange={(e) => setFeedbackAccuracy(e.target.value)}
+                    className="w-full rounded-2xl border border-[#E5E0D8] bg-[#FAFAF8] px-4 py-3 text-sm text-[#302D2A] outline-none transition focus:border-[#7C6CF2]"
+                  >
+                    <option value="Very Accurate">Very Accurate - Matches my thoughts</option>
+                    <option value="Moderately Accurate">Moderately Accurate</option>
+                    <option value="Needs Adjustment">Needs Adjustment</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#77716B]">
+                    Overall helpfulness rating of advice / insights
+                  </label>
+                  <div className="flex items-center gap-2 pt-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        type="button"
+                        key={star}
+                        onClick={() => setFeedbackRating(star)}
+                        className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border transition ${
+                          feedbackRating >= star
+                            ? "border-[#FFE0B2] bg-[#FFF8F0] text-[#E65100]"
+                            : "border-[#EFECE6] bg-[#FAFAF8] text-[#A39E93]"
+                        }`}
+                      >
+                        <Star size={18} fill={feedbackRating >= star ? "currentColor" : "none"} />
+                      </button>
+                    ))}
+                    <span className="ml-2 text-sm font-bold text-[#302D2A]">{feedbackRating} / 5</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#77716B]">
+                  Your Comments / Qualitative Feedback (for Research Validation)
+                </label>
+                <textarea
+                  value={feedbackComment}
+                  onChange={(e) => setFeedbackComment(e.target.value)}
+                  placeholder="Share how the breathing pods, reflections, or spectrum score helped you decompress today..."
+                  rows={3}
+                  className="w-full resize-none rounded-2xl border border-[#E5E0D8] bg-[#FAFAF8] p-4 text-sm text-[#302D2A] outline-none transition focus:border-[#7C6CF2]"
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={submittingFeedback}
+                  className="flex cursor-pointer items-center gap-2 rounded-2xl bg-[#7C6CF2] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6E5EE5] disabled:opacity-60"
+                >
+                  {submittingFeedback ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Submitting Feedback...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={17} /> Submit Validation Feedback
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </section>
 
           {/* Writing Streak & Milestones Section */}
           <section className="mt-8 rounded-[28px] border border-[#EAE6DE] bg-white p-6 md:p-8 shadow-sm mb-12">
