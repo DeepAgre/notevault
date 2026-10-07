@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import confetti from "canvas-confetti";
 import {
   Compass,
   FileText,
@@ -18,6 +19,8 @@ import {
   Play,
   Award,
   Info,
+  PartyPopper,
+  HeartHandshake,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -44,6 +47,7 @@ function WellnessArcade() {
     { id: 3, title: "Write down one thing you accomplished today", category: "Emotional", completed: false, loading: false },
     { id: 4, title: "Send a kind message or text to a friend or ally", category: "Social", completed: false, loading: false },
   ]);
+  const [showCelebrationModal, setShowCelebrationModal] = useState(false);
 
   // Game 3: Gratitude Scavenger Hunt States
   const [gratitudeIndex, setGratitudeIndex] = useState(0);
@@ -143,7 +147,26 @@ function WellnessArcade() {
     setQuests((prev) =>
       prev.map((q) => (q.id === id ? { ...q, completed: !q.completed } : q))
     );
-    toast.success("Quest progress updated");
+  };
+
+  // Check Quest Completion and trigger confetti celebration if 100% done
+  const handleCheckCompletion = () => {
+    const completedCount = quests.filter((q) => q.completed).length;
+
+    if (completedCount === quests.length) {
+      // Trigger gorgeous confetti blast
+      confetti({
+        particleCount: 120,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ["#7C6CF2", "#38bdf8", "#34d399", "#fbbf24", "#f472b6"],
+      });
+      setShowCelebrationModal(true);
+    } else {
+      toast(`You've completed ${completedCount} of ${quests.length} quests. Finish them all to unlock your reward!`, {
+        icon: '🌱',
+      });
+    }
   };
 
   const nextGratitudePrompt = () => {
@@ -339,12 +362,12 @@ function WellnessArcade() {
                 {/* GAME 2: SUPERBETTER MICRO-QUESTS */}
                 {activeGame === "quests" && (
                   <div className="mt-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <h2 className="text-2xl font-bold text-[#302D2A]">Micro-Resilience Quests</h2>
                         <p className="mt-1 text-sm text-[#77716B]">Check off small actions to build psychological momentum and emotional energy.</p>
                       </div>
-                      <span className="rounded-full bg-[#EAFBF7] px-4 py-1.5 text-xs font-semibold text-[#1B8062]">
+                      <span className="rounded-full bg-[#EAFBF7] px-4 py-1.5 text-xs font-semibold text-[#1B8062] w-fit">
                         {quests.filter((q) => q.completed).length} / {quests.length} Completed
                       </span>
                     </div>
@@ -361,6 +384,18 @@ function WellnessArcade() {
                           <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#77716B] border border-[#EFEAE2]">{quest.category}</span>
                         </div>
                       ))}
+                    </div>
+
+                    {/* NEW TEACHER-REQUESTED TASK COMPLETION BUTTON */}
+                    <div className="mt-8 flex justify-center">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleCheckCompletion}
+                        className="flex cursor-pointer items-center gap-2.5 rounded-2xl bg-gradient-to-r from-[#7C6CF2] to-[#08758E] px-7 py-4 text-sm font-semibold text-white shadow-lg shadow-[#7C6CF2]/20 transition"
+                      >
+                        <PartyPopper size={19} /> Check Task Completion & Celebrate 🎉
+                      </motion.button>
                     </div>
                   </div>
                 )}
@@ -386,6 +421,48 @@ function WellnessArcade() {
           </div>
         </main>
       </div>
+
+      {/* CELEBRATION MODAL WITH POSITIVE MESSAGE & ADVICE */}
+      <AnimatePresence>
+        {showCelebrationModal && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#3D3940]/40 p-4 backdrop-blur-sm" onClick={() => setShowCelebrationModal(false)}>
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-[32px] bg-white p-8 text-center shadow-2xl">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-[#E8F8F5] text-[#116466] shadow-inner">
+                <HeartHandshake size={32} />
+              </div>
+
+              <h2 className="mt-6 text-2xl font-bold text-[#302D2A]">Incredible Job, Champion! 🌟</h2>
+              
+              <div className="mt-4 rounded-2xl bg-[#FAFAF8] p-5 border border-[#EFEAE2] text-left">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#116466] mb-1">Mindset Growth Advice</p>
+                <p className="text-sm leading-relaxed text-[#625E59]">
+                  You successfully completed all micro-resilience actions today. Small wins compound into profound inner strength. Remember that progress isn't about perfection—it's about showing up for yourself with patience and kindness.
+                </p>
+              </div>
+
+              <p className="mt-4 text-xs italic text-[#8C857D]">"You are doing better than you think. Take a deep breath and carry this calm forward."</p>
+
+              <div className="mt-7 flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowCelebrationModal(false);
+                    setQuests(quests.map((q) => ({ ...q, completed: false }))); // Reset for next time
+                  }}
+                  className="flex-1 cursor-pointer rounded-2xl border border-[#E5E0D8] bg-white py-3 text-sm font-semibold text-[#77716B] hover:bg-[#F7F5F0]"
+                >
+                  Reset Quests
+                </button>
+                <button
+                  onClick={() => setShowCelebrationModal(false)}
+                  className="flex-1 cursor-pointer rounded-2xl bg-[#7C6CF2] py-3 text-sm font-semibold text-white shadow-md hover:bg-[#6E5EE5]"
+                >
+                  Continue Sanctuary
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
