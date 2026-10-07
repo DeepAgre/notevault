@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import confetti from "canvas-confetti";
 import {
   Compass,
   FileText,
@@ -34,6 +33,9 @@ function WellnessArcade() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const mobileMenuRef = useRef(null);
   const [stats, setStats] = useState({ total_notes: 0, trash_notes: 0 });
+
+  // Confetti Particles State (Self-contained, no external package needed)
+  const [confettiParticles, setConfettiParticles] = useState([]);
 
   // Game 1: Breathing States
   const [breathState, setBreathState] = useState("Ready"); // Ready, Inhale, Hold, Exhale
@@ -147,13 +149,18 @@ function WellnessArcade() {
     setBreathTimer(4);
   };
 
+  // Custom Confetti Particle Burst & Celebration Trigger
   const triggerCelebration = (type = "quests") => {
-    confetti({
-      particleCount: 180,
-      spread: 110,
-      origin: { y: 0.5 },
-      colors: ["#7C6CF2", "#38bdf8", "#34d399", "#fbbf24", "#f472b6"],
-    });
+    const particles = Array.from({ length: 50 }).map((_, i) => ({
+      id: i,
+      x: (Math.random() - 0.5) * 600,
+      y: (Math.random() - 0.5) * 500 - 100,
+      color: ["#7C6CF2", "#38bdf8", "#34d399", "#fbbf24", "#f472b6"][Math.floor(Math.random() * 5)],
+      size: Math.random() * 10 + 6,
+      rotate: Math.random() * 360,
+    }));
+    setConfettiParticles(particles);
+    setTimeout(() => setConfettiParticles([]), 3000);
 
     if (type === "quests") {
       setCelebrationData({
@@ -175,8 +182,6 @@ function WellnessArcade() {
     setQuests((prev) => {
       const updated = prev.map((q) => (q.id === id ? { ...q, completed: !q.completed } : q));
       const newlyCompletedAll = updated.every((q) => q.completed);
-      
-      // Automatically trigger celebration when the last task is checked!
       if (newlyCompletedAll) {
         setTimeout(() => triggerCelebration("quests"), 250);
       }
@@ -203,7 +208,28 @@ function WellnessArcade() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] text-[#292726] pb-24">
+    <div className="min-h-screen bg-[#FFFDF8] text-[#292726] pb-24 relative overflow-hidden">
+      {/* Confetti Explosion Burst */}
+      {confettiParticles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ opacity: 1, scale: 0, x: window.innerWidth / 2, y: window.innerHeight / 2 }}
+          animate={{ opacity: 0, scale: 1, x: window.innerWidth / 2 + p.x, y: window.innerHeight / 2 + p.y, rotate: p.rotate + 360 }}
+          transition={{ duration: 1.8, ease: "easeOut" }}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: p.size,
+            height: p.size,
+            backgroundColor: p.color,
+            borderRadius: "50%",
+            zIndex: 99999,
+            pointerEvents: "none",
+          }}
+        />
+      ))}
+
       <div className="pointer-events-none fixed -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-[#D9F5FF] blur-3xl opacity-60" />
       <div className="pointer-events-none fixed -bottom-40 -right-40 h-[420px] w-[420px] rounded-full bg-[#F0E5FF] blur-3xl opacity-60" />
 
