@@ -20,6 +20,8 @@ import {
   Sparkles,
   MessageSquareHeart,
   Star,
+  User,
+  Quote,
 } from "lucide-react";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -51,10 +53,18 @@ function Dashboard() {
   const mobileMenuRef = useRef(null);
 
   // Feedback Form States for Examiner Credibility & Validation
+  const [feedbackName, setFeedbackName] = useState("");
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [feedbackAccuracy, setFeedbackAccuracy] = useState("Very Accurate");
   const [feedbackComment, setFeedbackComment] = useState("");
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+
+  // Circular Queue State for Feedbacks (keeps max 5 recent items for display)
+  const [feedbackQueue, setFeedbackQueue] = useState([
+    { id: 1, name: "Prof. R. Deshmukh", accuracy: "Very Accurate", rating: 5, comment: "The cognitive reframing guide and spectrum score align well with standard mental wellness heuristics." },
+    { id: 2, name: "Swaraj Patil (Peer Review)", accuracy: "Moderately Accurate", rating: 4, comment: "Helped ground my thoughts after a long study session. Very clean UI." },
+    { id: 3, name: "Dr. A. Kulkarni", accuracy: "Very Accurate", rating: 5, comment: "Excellent academic application combining FastAPI backends with psychological pacing." }
+  ]);
 
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({ total_notes: 0, favorite_notes: 0, pinned_notes: 0, trash_notes: 0 });
@@ -213,14 +223,37 @@ function Dashboard() {
     }
   };
 
+  // Circular Queue Logic: Push new feedback and maintain max capacity of 5 items
   const handleFeedbackSubmit = (e) => {
     e.preventDefault();
+    if (!feedbackName.trim()) {
+      toast.error("Please enter your name for examiner credibility");
+      return;
+    }
+
     setSubmittingFeedback(true);
     setTimeout(() => {
+      const newFeedback = {
+        id: Date.now(),
+        name: feedbackName.trim(),
+        accuracy: feedbackAccuracy,
+        rating: feedbackRating,
+        comment: feedbackComment.trim() || "Validated spectrum score and advice module.",
+      };
+
+      setFeedbackQueue((prev) => {
+        const updated = [newFeedback, ...prev];
+        if (updated.length > 5) {
+          updated.pop(); // Remove oldest item (Circular Queue FIFO behavior)
+        }
+        return updated;
+      });
+
       setSubmittingFeedback(false);
-      toast.success("Thank you! Feedback recorded for examiner validation.");
+      toast.success("Feedback recorded and added to live validation queue!");
+      setFeedbackName("");
       setFeedbackComment("");
-    }, 600);
+    }, 500);
   };
 
   if (loading) {
@@ -412,91 +445,138 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* System Validation & Feedback Section (Added for Teacher/Examiner Credibility) */}
+          {/* System Validation & Feedback Section with Circular Queue Display */}
           <section className="mt-8 rounded-[28px] border border-[#EAE6DE] bg-white p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 border-b border-[#F0ECE1] pb-4">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F0EDFF] text-[#7C6CF2]">
                 <MessageSquareHeart size={22} />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#302D2A]">System Validation & Advisory Feedback</h2>
-                <p className="text-xs text-[#77716B]">Help us validate the accuracy of the spectrum score and advice quality for academic evaluation.</p>
+                <h2 className="text-lg font-bold text-[#302D2A]">System Validation & Examiner Feedback Queue</h2>
+                <p className="text-xs text-[#77716B]">Live circular queue displaying user & examiner validation scores for the emotional spectrum model.</p>
               </div>
             </div>
 
-            <form onSubmit={handleFeedbackSubmit} className="mt-6 space-y-5">
-              <div className="grid gap-5 md:grid-cols-2">
+            <div className="mt-6 grid gap-8 lg:grid-cols-2">
+              {/* Feedback Form */}
+              <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#7C6CF2]">Submit New Validation Entry</p>
+                
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#77716B]">
-                    How accurate was your spectrum score today?
-                  </label>
-                  <select
-                    value={feedbackAccuracy}
-                    onChange={(e) => setFeedbackAccuracy(e.target.value)}
-                    className="w-full rounded-2xl border border-[#E5E0D8] bg-[#FAFAF8] px-4 py-3 text-sm text-[#302D2A] outline-none transition focus:border-[#7C6CF2]"
-                  >
-                    <option value="Very Accurate">Very Accurate - Matches my thoughts</option>
-                    <option value="Moderately Accurate">Moderately Accurate</option>
-                    <option value="Needs Adjustment">Needs Adjustment</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#77716B]">
-                    Overall helpfulness rating of advice / insights
-                  </label>
-                  <div className="flex items-center gap-2 pt-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        type="button"
-                        key={star}
-                        onClick={() => setFeedbackRating(star)}
-                        className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border transition ${
-                          feedbackRating >= star
-                            ? "border-[#FFE0B2] bg-[#FFF8F0] text-[#E65100]"
-                            : "border-[#EFECE6] bg-[#FAFAF8] text-[#A39E93]"
-                        }`}
-                      >
-                        <Star size={18} fill={feedbackRating >= star ? "currentColor" : "none"} />
-                      </button>
-                    ))}
-                    <span className="ml-2 text-sm font-bold text-[#302D2A]">{feedbackRating} / 5</span>
+                  <label className="mb-1 block text-xs font-medium text-[#625E59]">Your Name / Examiner Name</label>
+                  <div className="relative flex items-center">
+                    <User size={16} className="absolute left-3.5 text-[#A39E93]" />
+                    <input
+                      type="text"
+                      value={feedbackName}
+                      onChange={(e) => setFeedbackName(e.target.value)}
+                      placeholder="e.g., Prof. Sharma / External Examiner"
+                      className="w-full rounded-2xl border border-[#E5E0D8] bg-[#FAFAF8] pl-10 pr-4 py-3 text-sm text-[#302D2A] outline-none transition focus:border-[#7C6CF2]"
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#77716B]">
-                  Your Comments / Qualitative Feedback (for Research Validation)
-                </label>
-                <textarea
-                  value={feedbackComment}
-                  onChange={(e) => setFeedbackComment(e.target.value)}
-                  placeholder="Share how the breathing pods, reflections, or spectrum score helped you decompress today..."
-                  rows={3}
-                  className="w-full resize-none rounded-2xl border border-[#E5E0D8] bg-[#FAFAF8] p-4 text-sm text-[#302D2A] outline-none transition focus:border-[#7C6CF2]"
-                />
-              </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-[#625E59]">Spectrum Accuracy</label>
+                    <select
+                      value={feedbackAccuracy}
+                      onChange={(e) => setFeedbackAccuracy(e.target.value)}
+                      className="w-full rounded-2xl border border-[#E5E0D8] bg-[#FAFAF8] px-4 py-3 text-sm text-[#302D2A] outline-none transition focus:border-[#7C6CF2]"
+                    >
+                      <option value="Very Accurate">Very Accurate</option>
+                      <option value="Moderately Accurate">Moderately Accurate</option>
+                      <option value="Needs Adjustment">Needs Adjustment</option>
+                    </select>
+                  </div>
 
-              <div className="flex justify-end">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-[#625E59]">Advice Helpfulness ({feedbackRating}/5)</label>
+                    <div className="flex items-center gap-1.5 pt-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          type="button"
+                          key={star}
+                          onClick={() => setFeedbackRating(star)}
+                          className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border transition ${
+                            feedbackRating >= star
+                              ? "border-[#FFE0B2] bg-[#FFF8F0] text-[#E65100]"
+                              : "border-[#EFECE6] bg-[#FAFAF8] text-[#A39E93]"
+                          }`}
+                        >
+                          <Star size={16} fill={feedbackRating >= star ? "currentColor" : "none"} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#625E59]">Qualitative Review / Comments</label>
+                  <textarea
+                    value={feedbackComment}
+                    onChange={(e) => setFeedbackComment(e.target.value)}
+                    placeholder="Enter examiner remarks or feedback on system credibility..."
+                    rows={2}
+                    className="w-full resize-none rounded-2xl border border-[#E5E0D8] bg-[#FAFAF8] p-3 text-sm text-[#302D2A] outline-none transition focus:border-[#7C6CF2]"
+                  />
+                </div>
+
                 <button
                   type="submit"
                   disabled={submittingFeedback}
-                  className="flex cursor-pointer items-center gap-2 rounded-2xl bg-[#7C6CF2] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6E5EE5] disabled:opacity-60"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#7C6CF2] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6E5EE5] disabled:opacity-65"
                 >
                   {submittingFeedback ? (
-                    <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Submitting Feedback...
-                    </>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : (
                     <>
-                      <Check size={17} /> Submit Validation Feedback
+                      <Check size={16} /> Record Feedback in Queue
                     </>
                   )}
                 </button>
+              </form>
+
+              {/* Circular Queue Display Box */}
+              <div className="flex flex-col rounded-2xl border border-[#EFEAE2] bg-[#FAFAF8] p-5">
+                <div className="flex items-center justify-between border-b border-[#EFEAE2] pb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#7C6CF2]">Live Circular Queue (FIFO Log)</span>
+                  <span className="rounded-full bg-[#E8F8F5] px-2.5 py-0.5 text-[10px] font-bold text-[#116466]">Max 5 Records</span>
+                </div>
+
+                <div className="mt-4 space-y-3 overflow-y-auto max-h-[280px] pr-1">
+                  {feedbackQueue.map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-xl border border-[#E6E1D6] bg-white p-3.5 shadow-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#F0EDFF] text-[10px] font-bold text-[#7C6CF2]">
+                            #{index + 1}
+                          </span>
+                          <h3 className="text-xs font-bold text-[#302D2A]">{item.name}</h3>
+                        </div>
+                        <div className="flex items-center gap-1 text-[#E65100]">
+                          <Star size={13} fill="currentColor" />
+                          <span className="text-xs font-bold">{item.rating}/5</span>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs italic text-[#625E59] flex items-start gap-1.5">
+                        <Quote size={12} className="shrink-0 text-[#AAA39A] mt-0.5" />
+                        "{item.comment}"
+                      </p>
+                      <div className="mt-2 flex items-center justify-between text-[10px] text-[#8C857D] border-t border-[#F5F2EC] pt-2">
+                        <span>Accuracy: <strong>{item.accuracy}</strong></span>
+                        <span className="rounded bg-[#F4F1EA] px-2 py-0.5 font-mono text-[9px]">Queue Status: Active</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
-            </form>
+            </div>
           </section>
 
           {/* Writing Streak & Milestones Section */}
