@@ -42,6 +42,9 @@ class NoteResponse(BaseModel):
     is_deleted: bool
     deleted_at: datetime | None = None
     sentiment_score: float | None = None
+    
+    # --- NEW ML SENTIMENT BAND FIELD FOR FRONTEND ---
+    sentiment_band: str | None = "Reflecting & Processing"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -53,7 +56,6 @@ class NoteUpdate(BaseModel):
 class NoteShareRequest(BaseModel):
     recipient: str = Field(min_length=1, max_length=100)
 
-# --- NEW FEEDBACK SCHEMAS ---
 
 class FeedbackCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)

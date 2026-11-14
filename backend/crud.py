@@ -1,3 +1,5 @@
+import os
+import joblib
 from models import User, Note, NoteShare, Feedback
 from schemas import NoteCreate, NoteUpdate, UserRegister, UserLogin, FeedbackCreate
 from auth import hash_password, verify_password, create_access_token
@@ -5,13 +7,20 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime, timezone, timedelta
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-analyzer = SentimentIntensityAnalyzer()
+# --- LOAD LOCAL MACHINE LEARNING SENTIMENT MODEL ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "sentiment_model.pkl")
+
+try:
+    ml_model = joblib.load(MODEL_PATH)
+    print("ML Model loaded successfully in crud.py from:", MODEL_PATH)
+except Exception as e:
+    ml_model = None
+    print(f"Warning: Could not load sentiment model in crud.py: {e}")
 
 
 def create_user(db: Session, user: UserRegister):
-
     email = user.email.strip().lower()
     username = user.username.strip()
 
@@ -61,7 +70,6 @@ def create_user(db: Session, user: UserRegister):
 
 
 def login_user(db: Session, user: UserLogin):
-
     identifier = user.identifier.strip()
 
     if not identifier or not user.password:
@@ -109,16 +117,23 @@ def create_note(
     note: NoteCreate,
     current_user: User
 ):
-    sentiment_score = 0.0
-    try:
-        sentiment_score = analyzer.polarity_scores(f"{note.title} {note.content}")["compound"]
-    except Exception:
-        sentiment_score = 0.0
+    full_text = f"{note.title} {note.content}"
+    sentiment_band = "Reflecting & Processing"
+    sentiment_score = 0.5
+
+    if ml_model:
+        try:
+            sentiment_band = ml_model.predict([full_text])[0]
+            probabilities = ml_model.predict_proba([full_text])[0]
+            sentiment_score = float(max(probabilities))
+        except Exception as e:
+            print("ML prediction error in create_note:", e)
 
     new_note = Note(
         title=note.title,
         content=note.content,
         owner_id=current_user.id,
+        sentiment_band=sentiment_band,
         sentiment_score=sentiment_score
     )
 
@@ -133,7 +148,6 @@ def get_notes(
     db: Session,
     current_user: User
 ):
-
     all_notes = (
         db.query(Note)
         .filter(
@@ -143,6 +157,18 @@ def get_notes(
         .all()
     )
 
+    # Lazy backfill for older notes missing sentiment data
+    if ml_model:
+        for note in all_notes:
+            if not note.sentiment_band:
+                try:
+                    full_text = f"{note.title} {note.content}"
+                    note.sentiment_band = ml_model.predict([full_text])[0]
+                    note.sentiment_score = float(max(ml_model.predict_proba([full_text])[0]))
+                    db.commit()
+                except Exception:
+                    pass
+
     return all_notes
 
 
@@ -150,7 +176,6 @@ def get_trash(
     db: Session,
     current_user: User
 ):
-
     trash_notes = (
         db.query(Note)
         .filter(
@@ -168,7 +193,6 @@ def restore_note(
     current_user: User,
     note_id: int
 ):
-
     note = (
         db.query(Note)
         .filter(
@@ -199,7 +223,6 @@ def permanently_delete_note(
     current_user: User,
     note_id: int
 ):
-
     note = (
         db.query(Note)
         .filter(
@@ -230,7 +253,6 @@ def update_note(
     note: NoteUpdate,
     note_id: int
 ):
-
     existing_note = (
         db.query(Note)
         .filter(
@@ -249,10 +271,16 @@ def update_note(
 
     existing_note.title = note.title
     existing_note.content = note.content
-    try:
-        existing_note.sentiment_score = analyzer.polarity_scores(f"{note.title} {note.content}")["compound"]
-    except Exception:
-        existing_note.sentiment_score = 0.0
+    
+    # Re-run ML model on updated content
+    if ml_model:
+        try:
+            full_text = f"{note.title} {note.content}"
+            existing_note.sentiment_band = ml_model.predict([full_text])[0]
+            existing_note.sentiment_score = float(max(ml_model.predict_proba([full_text])[0]))
+        except Exception as e:
+            print("ML prediction error in update_note:", e)
+
     existing_note.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(existing_note)
@@ -265,7 +293,6 @@ def delete_note(
     current_user: User,
     note_id: int
 ):
-
     note_exists = (
         db.query(Note)
         .filter(
@@ -296,7 +323,6 @@ def toggle_pin_note(
     current_user,
     note_id
 ):
-
     note = (
         db.query(Note)
         .filter(
@@ -326,7 +352,6 @@ def toggle_favorite_note(
     current_user,
     note_id
 ):
-
     note = (
         db.query(Note)
         .filter(
@@ -352,7 +377,6 @@ def toggle_favorite_note(
 
 
 def delete_expired_notes(db: Session):
-
     expiry_time = (
         datetime.now(timezone.utc)
         - timedelta(days=30)
@@ -379,7 +403,6 @@ def get_note_stats(
     db: Session,
     current_user: User
 ):
-
     total_notes = (
         db.query(Note)
         .filter(
@@ -439,7 +462,6 @@ def get_dashboard_data(db, current_user):
 def share_note(db: Session, current_user: User, note_id: int, recipient: str):
     recipient = recipient.strip()
 
-    # Verify that the note belongs to the sender
     original_note = db.query(Note).filter(
         Note.id == note_id,
         Note.owner_id == current_user.id,
@@ -449,7 +471,6 @@ def share_note(db: Session, current_user: User, note_id: int, recipient: str):
     if not original_note:
         raise HTTPException(status_code=404, detail="Note not found")
 
-    # Find recipient by username or email
     recipient_user = db.query(User).filter(
         (User.email == recipient.lower()) |
         (User.username == recipient)
@@ -458,28 +479,27 @@ def share_note(db: Session, current_user: User, note_id: int, recipient: str):
     if not recipient_user:
         raise HTTPException(status_code=404, detail="Recipient not found")
 
-    # Prevent sharing with yourself
     if recipient_user.id == current_user.id:
         raise HTTPException(
             status_code=400,
             detail="You cannot share a note with yourself"
         )
 
-    # Create an independent copy for the recipient
     copied_note = Note(
         title=original_note.title,
         content=original_note.content,
         owner_id=recipient_user.id,
         pinned=False,
         favorite=False,
-        is_deleted=False
+        is_deleted=False,
+        sentiment_band=original_note.sentiment_band,
+        sentiment_score=original_note.sentiment_score
     )
 
     db.add(copied_note)
     db.commit()
     db.refresh(copied_note)
 
-    # Keep a record of the sharing event
     new_share = NoteShare(
         note_id=original_note.id,
         sender_id=current_user.id,
@@ -507,14 +527,12 @@ def get_shared_notes(db: Session, current_user: User):
 
     return shared_notes
 
-# --- NEW FEEDBACK CRUD LOGIC ---
+# --- FEEDBACK CRUD LOGIC ---
 
 def get_feedbacks(db: Session):
-    """Fetch the 5 most recent feedback entries for the dashboard queue"""
     return db.query(Feedback).order_by(desc(Feedback.created_at)).limit(5).all()
 
 def create_feedback(db: Session, feedback: FeedbackCreate):
-    """Submit a new feedback entry and enforce max 5 limit in DB"""
     new_feedback = Feedback(
         name=feedback.name,
         accuracy=feedback.accuracy,
@@ -525,7 +543,6 @@ def create_feedback(db: Session, feedback: FeedbackCreate):
     db.commit()
     db.refresh(new_feedback)
     
-    # Enforce the circular queue logic in the DB (keep only latest 5)
     total_feedbacks = db.query(Feedback).count()
     if total_feedbacks > 5:
         oldest_feedbacks = db.query(Feedback).order_by(Feedback.created_at).limit(total_feedbacks - 5).all()

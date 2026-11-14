@@ -75,6 +75,7 @@ function Dashboard() {
     return Math.max(1, daysSet.size);
   }, [notes]);
 
+  // --- ML-POWERED EMOTIONAL SPECTRUM SCALE ---
   const emotionalSpectrum = useMemo(() => {
     if (!notes || notes.length === 0) {
       return {
@@ -84,37 +85,36 @@ function Dashboard() {
       };
     }
 
-    let heavyKeywords = ["fail", "exhaust", "drown", "alone", "stuck", "overwhelm", "zero", "behind", "anxiety", "hard", "tired", "deadline"];
-    let heavyCount = 0;
-    let soothingCount = 0;
+    // Tally sentiment bands assigned by our trained ML model in the backend
+    let heavyCount = notes.filter((n) => n.sentiment_band === "Carrying Heavy Weight").length;
+    let groundedCount = notes.filter((n) => n.sentiment_band === "Grounded & Light").length;
+    let processingCount = notes.filter((n) => n.sentiment_band === "Reflecting & Processing").length;
 
-    notes.forEach((n) => {
-      const text = (n.title + " " + n.content).toLowerCase();
-      if (heavyKeywords.some((kw) => text.includes(kw))) heavyCount++;
-      if (text.includes("gentle") || text.includes("step") || text.includes("breath") || text.includes("realiz") || text.includes("kind")) {
-        soothingCount++;
-      }
-    });
+    let total = notes.length;
+    // Calculate weighted average slider position (0 to 100)
+    // Carrying Heavy = ~20%, Processing = ~50%, Grounded = ~85%
+    let calculatedPosition = Math.round(
+      ((groundedCount * 85) + (processingCount * 50) + (heavyCount * 20)) / total
+    );
+    calculatedPosition = Math.min(90, Math.max(15, calculatedPosition));
 
-    let score = Math.min(95, Math.max(10, Math.round(50 + (soothingCount * 15) - (heavyCount * 12))));
-
-    if (score >= 65) {
+    if (groundedCount >= heavyCount && groundedCount >= processingCount) {
       return {
-        position: score,
+        position: calculatedPosition,
         label: "Grounded & Light",
-        message: "You are navigating your reflections with a calm, balanced perspective. Keep honoring your pace.",
+        message: "Your recent reflections show a calm, balanced perspective trained via machine learning. Keep honoring your pace.",
       };
-    } else if (score >= 35) {
+    } else if (heavyCount > groundedCount && heavyCount >= processingCount) {
       return {
-        position: score,
-        label: "Reflecting & Processing",
-        message: "You are actively sorting through your thoughts today. Give yourself grace as you process.",
+        position: calculatedPosition,
+        label: "Carrying Heavy Weight",
+        message: "Our ML model detects you are holding onto demanding thoughts right now. Remember it's okay to rest and take a breather.",
       };
     } else {
       return {
-        position: score,
-        label: "Carrying Heavy Weight",
-        message: "It looks like you are holding onto demanding thoughts right now. Remember that it's okay to rest and take a breather.",
+        position: calculatedPosition,
+        label: "Reflecting & Processing",
+        message: "You are actively sorting through your thoughts today. Give yourself grace as you process.",
       };
     }
   }, [notes]);
@@ -162,11 +162,10 @@ function Dashboard() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        // Fetch dashboard data AND feedbacks from database concurrently
         const [dashboardRes, wellnessRes, feedbacksRes] = await Promise.all([
           api.get("/dashboard"),
           api.get("/wellness/insights").catch(() => null),
-          api.get("/feedbacks").catch(() => ({ data: [] })) // Fallback if no reviews exist yet
+          api.get("/feedbacks").catch(() => ({ data: [] }))
         ]);
 
         setNotes(dashboardRes.data.notes);
@@ -222,12 +221,13 @@ function Dashboard() {
 
     setSavingNote(true);
     try {
+      // Backend automatically runs sentiment_model.pkl and saves sentiment_band
       await api.post("/notes", { title: title.trim(), content: finalContent });
       const response = await api.get("/dashboard");
       setNotes(response.data.notes);
       setStats(response.data.stats);
       resetEditor();
-      toast.success("Reflection saved safely");
+      toast.success("Reflection analyzed by ML & saved safely!");
     } catch (error) {
       console.log(error);
       toast.error("Failed to save reflection");
@@ -236,7 +236,6 @@ function Dashboard() {
     }
   };
 
-  // Submit Feedback to Database
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     if (!feedbackName.trim()) {
@@ -250,20 +249,17 @@ function Dashboard() {
         name: feedbackName.trim(),
         accuracy: feedbackAccuracy,
         rating: feedbackRating,
-        comment: feedbackComment.trim() || "Validated spectrum score and advice module.",
+        comment: feedbackComment.trim() || "Validated ML spectrum score and model accuracy.",
       };
 
-      // Save to database
       const res = await api.post("/feedbacks", payload);
-      
-      // Update local state queue so it shows up immediately
       setFeedbackQueue((prev) => [res.data, ...prev]);
       
       toast.success("Feedback recorded and added to live validation queue!");
       setFeedbackName("");
       setFeedbackComment("");
       setFeedbackRating(5);
-      setActiveFeedbackIndex(0); // Instantly show the newly submitted feedback
+      setActiveFeedbackIndex(0);
     } catch (error) {
       toast.error("Failed to save validation feedback");
       console.log(error);
@@ -433,7 +429,7 @@ function Dashboard() {
               <div>
                 <div className="flex items-center justify-between border-b border-[#F0ECE1] pb-4">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-bold uppercase tracking-widest text-[#C58B16]">Emotional Spectrum Scale</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#C58B16]">Emotional Spectrum Scale (ML Powered)</p>
                     <button onClick={() => setShowInfoModal("spectrum")} className="cursor-pointer text-[#C58B16] hover:text-black"><Info size={15} /></button>
                   </div>
                   <span className="rounded-full bg-[#FFF3E0] px-3 py-1 text-xs font-semibold text-[#C58B16]">{emotionalSpectrum.label}</span>
@@ -456,7 +452,7 @@ function Dashboard() {
               </div>
 
               <div className="mt-6 border-t border-[#F0ECE1] pt-3">
-                <p className="text-[11px] text-[#77716B] italic text-center">A safe, judgment-free space for your daily thoughts</p>
+                <p className="text-[11px] text-[#77716B] italic text-center">Analyzed via Scikit-Learn ML Sentiment Model</p>
               </div>
             </div>
           </div>
@@ -562,7 +558,6 @@ function Dashboard() {
                   </span>
                 </div>
 
-                {/* Relative container prevents absolute children from breaking layout */}
                 <div className="relative h-[180px] w-full overflow-hidden rounded-xl bg-transparent">
                   <AnimatePresence initial={false}>
                     {feedbackQueue.length > 0 ? (
@@ -603,7 +598,6 @@ function Dashboard() {
                   </AnimatePresence>
                 </div>
 
-                {/* Progress Indicators */}
                 {feedbackQueue.length > 1 && (
                   <div className="mt-4 flex justify-center gap-1.5">
                     {feedbackQueue.map((_, i) => (
@@ -639,6 +633,7 @@ function Dashboard() {
             <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {STREAK_BADGES.map((badge) => {
                 const isUnlocked = streakDays >= badge.daysRequired;
+                const daysLeft = Math.max(0, badge.daysRequired - streakDays);
                 return (
                   <div key={badge.id} className={`flex items-start gap-3.5 rounded-2xl border p-4 transition ${isUnlocked ? "border-[#FFE0B2] bg-[#FFF8F0]" : "border-[#EFECE6] bg-[#FAFAF8] opacity-70"}`}>
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isUnlocked ? "bg-[#FFE0B2] text-[#E65100]" : "bg-[#EFECE6] text-[#A39E93]"}`}>
@@ -651,7 +646,7 @@ function Dashboard() {
                       </div>
                       <p className="mt-1 text-xs leading-relaxed text-[#77716B]">{badge.description}</p>
                       <p className="mt-2 text-[10px] font-semibold text-[#A39E93]">
-                        {isUnlocked ? "Completed!" : `Requires ${badge.daysRequired} days (${badge.daysRequired - streakDays} days left)`}
+                        {isUnlocked ? "Completed!" : `Requires ${badge.daysRequired} days (${daysLeft} days left)`}
                       </p>
                     </div>
                   </div>
@@ -677,7 +672,7 @@ function Dashboard() {
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-[#625E59]">
                 {showInfoModal === "sprout" && "Sprout is your gentle emotional companion here to offer a listening presence, soothing words, and a calm space whenever you log your thoughts."}
-                {showInfoModal === "spectrum" && "The emotional spectrum scale uses a sliding indicator ball to map your daily reflection entries, showing whether you are feeling grounded, processing thoughts, or carrying extra weight."}
+                {showInfoModal === "spectrum" && "The emotional spectrum scale maps your reflections using a trained Machine Learning model (Scikit-Learn) to accurately categorize entries into grounded, processing, or heavy weights."}
               </p>
               <div className="mt-7 flex justify-end">
                 <button onClick={() => setShowInfoModal(null)} className="cursor-pointer rounded-xl bg-[#292726] px-5 py-2.5 text-sm font-medium text-white">Got it</button>
@@ -749,7 +744,7 @@ function Dashboard() {
                   {savingNote ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Saving...
+                      Analyzing with ML...
                     </>
                   ) : (
                     <>

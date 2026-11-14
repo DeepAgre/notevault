@@ -43,6 +43,9 @@ class Note(Base):
     is_deleted = Column(Boolean, default=False, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
     sentiment_score = Column(Float, nullable=True)
+    
+    # --- NEW ML SENTIMENT BAND COLUMN ---
+    sentiment_band = Column(String, default="Reflecting & Processing", nullable=True)
 
     owner = relationship("User", back_populates="notes")
 
@@ -63,7 +66,6 @@ class NoteShare(Base):
         ),
     )
 
-# --- NEW FEEDBACK TABLE ---
 class Feedback(Base):
     __tablename__ = "feedbacks"
 
