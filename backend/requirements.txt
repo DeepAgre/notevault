@@ -4,10 +4,10 @@ sqlalchemy
 psycopg2-binary
 python-dotenv
 python-jose
+passlib
 bcrypt==4.0.1
 python-multipart
 email-validator
-vaderSentiment
 scikit-learn
 joblib
 datasets
