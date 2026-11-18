@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import CrisisModal from "../components/CrisisModal";
 import { useNavigate } from "react-router-dom";
 import {
   Check,
@@ -37,6 +38,7 @@ function Reflections() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingNote, setSavingNote] = useState(false);
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [viewingNote, setViewingNote] = useState(null);
@@ -147,12 +149,19 @@ function Reflections() {
 
     setSavingNote(true);
     try {
-      await api.post("/notes", { title: title.trim(), content: finalContent });
+      const res = await api.post("/notes", { title: title.trim(), content: finalContent });
       const response = await api.get("/dashboard");
       setNotes(response.data.notes);
       setStats(response.data.stats);
+
+      // Trigger Crisis Support Modal if Critical Distress is detected
+      if (res.data && res.data.sentiment_band === "Critical Distress") {
+        setShowCrisisModal(true);
+      } else {
+        toast.success("Reflection saved safely");
+      }
+
       resetEditor();
-      toast.success("Reflection saved safely");
     } catch (error) {
       console.log(error);
       toast.error("Failed to save reflection");
@@ -560,6 +569,9 @@ function Reflections() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Crisis Support Popup Modal */}
+      <CrisisModal isOpen={showCrisisModal} onClose={() => setShowCrisisModal(false)} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import CrisisModal from "../components/CrisisModal";
 import { useNavigate } from "react-router-dom";
 import {
   Check,
@@ -37,6 +38,7 @@ function Dashboard() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingNote, setSavingNote] = useState(false);
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
@@ -75,7 +77,7 @@ function Dashboard() {
     return Math.max(1, daysSet.size);
   }, [notes]);
 
-  // --- ML-POWERED EMOTIONAL SPECTRUM SCALE ---
+  // --- AI EMOTIONAL SPECTRUM SCALE ---
   const emotionalSpectrum = useMemo(() => {
     if (!notes || notes.length === 0) {
       return {
@@ -85,30 +87,34 @@ function Dashboard() {
       };
     }
 
-    // Tally sentiment bands assigned by our trained ML model in the backend
     let heavyCount = notes.filter((n) => n.sentiment_band === "Carrying Heavy Weight").length;
     let groundedCount = notes.filter((n) => n.sentiment_band === "Grounded & Light").length;
     let processingCount = notes.filter((n) => n.sentiment_band === "Reflecting & Processing").length;
+    let distressCount = notes.filter((n) => n.sentiment_band === "Critical Distress").length;
 
     let total = notes.length;
-    // Calculate weighted average slider position (0 to 100)
-    // Carrying Heavy = ~20%, Processing = ~50%, Grounded = ~85%
     let calculatedPosition = Math.round(
-      ((groundedCount * 85) + (processingCount * 50) + (heavyCount * 20)) / total
+      ((groundedCount * 85) + (processingCount * 50) + (heavyCount * 20) + (distressCount * 5)) / total
     );
     calculatedPosition = Math.min(90, Math.max(15, calculatedPosition));
 
-    if (groundedCount >= heavyCount && groundedCount >= processingCount) {
+    if (distressCount > 0) {
+      return {
+        position: 15,
+        label: "Critical Distress",
+        message: "Your recent reflections highlight a heavy burden. Please lean on support and take things one moment at a time.",
+      };
+    } else if (groundedCount >= heavyCount && groundedCount >= processingCount) {
       return {
         position: calculatedPosition,
         label: "Grounded & Light",
-        message: "Your recent reflections show a calm, balanced perspective trained via machine learning. Keep honoring your pace.",
+        message: "Your recent reflections show a calm, balanced perspective analyzed via AI. Keep honoring your pace.",
       };
     } else if (heavyCount > groundedCount && heavyCount >= processingCount) {
       return {
         position: calculatedPosition,
         label: "Carrying Heavy Weight",
-        message: "Our ML model detects you are holding onto demanding thoughts right now. Remember it's okay to rest and take a breather.",
+        message: "Our AI model detects you are holding onto demanding thoughts right now. Remember it's okay to rest and take a breather.",
       };
     } else {
       return {
@@ -134,7 +140,6 @@ function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Carousel auto-scroll for feedbacks (runs every 5 seconds)
   useEffect(() => {
     if (feedbackQueue.length <= 1) return;
     const timer = setInterval(() => {
@@ -221,13 +226,19 @@ function Dashboard() {
 
     setSavingNote(true);
     try {
-      // Backend automatically runs sentiment_model.pkl and saves sentiment_band
-      await api.post("/notes", { title: title.trim(), content: finalContent });
+      const res = await api.post("/notes", { title: title.trim(), content: finalContent });
       const response = await api.get("/dashboard");
       setNotes(response.data.notes);
       setStats(response.data.stats);
+
+      // Trigger Crisis Support Modal if Critical Distress is detected
+      if (res.data && res.data.sentiment_band === "Critical Distress") {
+        setShowCrisisModal(true);
+      } else {
+        toast.success("Reflection analyzed & saved safely!");
+      }
+
       resetEditor();
-      toast.success("Reflection analyzed by ML & saved safely!");
     } catch (error) {
       console.log(error);
       toast.error("Failed to save reflection");
@@ -249,7 +260,7 @@ function Dashboard() {
         name: feedbackName.trim(),
         accuracy: feedbackAccuracy,
         rating: feedbackRating,
-        comment: feedbackComment.trim() || "Validated ML spectrum score and model accuracy.",
+        comment: feedbackComment.trim() || "Validated AI spectrum score and model accuracy.",
       };
 
       const res = await api.post("/feedbacks", payload);
@@ -429,7 +440,7 @@ function Dashboard() {
               <div>
                 <div className="flex items-center justify-between border-b border-[#F0ECE1] pb-4">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-bold uppercase tracking-widest text-[#C58B16]">Emotional Spectrum Scale (ML Powered)</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#C58B16]">Emotional Spectrum Scale (AI Powered)</p>
                     <button onClick={() => setShowInfoModal("spectrum")} className="cursor-pointer text-[#C58B16] hover:text-black"><Info size={15} /></button>
                   </div>
                   <span className="rounded-full bg-[#FFF3E0] px-3 py-1 text-xs font-semibold text-[#C58B16]">{emotionalSpectrum.label}</span>
@@ -452,7 +463,7 @@ function Dashboard() {
               </div>
 
               <div className="mt-6 border-t border-[#F0ECE1] pt-3">
-                <p className="text-[11px] text-[#77716B] italic text-center">Analyzed via Scikit-Learn ML Sentiment Model</p>
+                <p className="text-[11px] text-[#77716B] italic text-center">Analyzed via OpenRouter AI Sentiment Model</p>
               </div>
             </div>
           </div>
@@ -672,7 +683,7 @@ function Dashboard() {
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-[#625E59]">
                 {showInfoModal === "sprout" && "Sprout is your gentle emotional companion here to offer a listening presence, soothing words, and a calm space whenever you log your thoughts."}
-                {showInfoModal === "spectrum" && "The emotional spectrum scale maps your reflections using a trained Machine Learning model (Scikit-Learn) to accurately categorize entries into grounded, processing, or heavy weights."}
+                {showInfoModal === "spectrum" && "The emotional spectrum scale maps your reflections using an advanced OpenRouter AI model to accurately categorize entries into grounded, processing, or heavy weights."}
               </p>
               <div className="mt-7 flex justify-end">
                 <button onClick={() => setShowInfoModal(null)} className="cursor-pointer rounded-xl bg-[#292726] px-5 py-2.5 text-sm font-medium text-white">Got it</button>
@@ -744,7 +755,7 @@ function Dashboard() {
                   {savingNote ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Analyzing with ML...
+                      Analyzing with AI...
                     </>
                   ) : (
                     <>
@@ -757,6 +768,9 @@ function Dashboard() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Crisis Support Popup Modal */}
+      <CrisisModal isOpen={showCrisisModal} onClose={() => setShowCrisisModal(false)} />
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import os
-import joblib
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends, APIRouter, HTTPException
 from database import engine, Base, get_db
@@ -46,21 +45,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- LOAD LOCAL MACHINE LEARNING SENTIMENT MODEL SAFELY ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "sentiment_model.pkl")
-
-ml_model = None
-try:
-    if os.path.exists(MODEL_PATH):
-        ml_model = joblib.load(MODEL_PATH)
-        print("ML Model loaded successfully from:", MODEL_PATH)
-    else:
-        print(f"Warning: sentiment_model.pkl not found at {MODEL_PATH}. Running without ML model.")
-except Exception as e:
-    ml_model = None
-    print(f"Warning: Could not load sentiment model from {MODEL_PATH}: {e}")
-
 class SentimentRequest(BaseModel):
     content: str
 
@@ -77,20 +61,6 @@ def profile(current_user: User = Depends(get_current_user)):
 
 @router.get("/dashboard")
 def dashboard_data(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Auto-backfill sentiment for any existing old notes that lack a band
-    notes = get_notes(db, current_user)
-    if ml_model:
-        for note in notes:
-            if not note.sentiment_band:
-                try:
-                    pred = ml_model.predict([note.content])[0]
-                    prob = float(max(ml_model.predict_proba([note.content])[0]))
-                    note.sentiment_band = pred
-                    note.sentiment_score = prob
-                    db.commit()
-                except Exception:
-                    pass
-
     return get_dashboard_data(db, current_user)
 
 
@@ -106,45 +76,12 @@ def make_note(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Run ML Model on note content upon creation
-    band = "Reflecting & Processing"
-    score = 0.5
-    if ml_model:
-        try:
-            full_text = f"{note.title} {note.content}"
-            band = ml_model.predict([full_text])[0]
-            score = float(max(ml_model.predict_proba([full_text])[0]))
-        except Exception as e:
-            print("ML prediction error on note creation:", e)
-
-    # Create note with AI sentiment fields populated (Fixed owner_id matching models.py)
-    db_note = Note(
-        title=note.title,
-        content=note.content,
-        owner_id=current_user.id,
-        sentiment_band=band,
-        sentiment_score=score
-    )
-    db.add(db_note)
-    db.commit()
-    db.refresh(db_note)
-    return db_note
+    return create_note(db, note, current_user)
 
 
 @router.get("/notes", response_model=list[NoteResponse])
 def fetch_notes(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    notes = get_notes(db, current_user)
-    # Lazy backfill for old notes missing sentiment
-    if ml_model:
-        for note in notes:
-            if not note.sentiment_band:
-                try:
-                    note.sentiment_band = ml_model.predict([note.content])[0]
-                    note.sentiment_score = float(max(ml_model.predict_proba([note.content])[0]))
-                    db.commit()
-                except Exception:
-                    pass
-    return notes
+    return get_notes(db, current_user)
 
 
 @router.get("/trash", response_model=list[NoteResponse])
@@ -169,17 +106,7 @@ def note_update(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    updated = update_note(db, current_user, note, note_id)
-    # Re-run ML if content changed
-    if ml_model and updated and note.content:
-        try:
-            updated.sentiment_band = ml_model.predict([note.content])[0]
-            updated.sentiment_score = float(max(ml_model.predict_proba([note.content])[0]))
-            db.commit()
-            db.refresh(updated)
-        except Exception:
-            pass
-    return updated
+    return update_note(db, current_user, note, note_id)
 
 
 @router.get("/notes/stats")
@@ -217,37 +144,19 @@ def note_delete(note_id: int, db: Session = Depends(get_db), current_user: User 
     return delete_note(db, current_user, note_id)
 
 
-# --- STANDALONE AI/ML SENTIMENT ANALYSIS ENDPOINT ---
-@router.post("/analyze-sentiment")
-def analyze_sentiment(entry: SentimentRequest, current_user: User = Depends(get_current_user)):
-    if not ml_model:
-        raise HTTPException(status_code=500, detail="ML sentiment model is not initialized on the server.")
-    
-    predicted_band = ml_model.predict([entry.content])[0]
-    probabilities = ml_model.predict_proba([entry.content])[0]
-    confidence = float(max(probabilities))
-    
-    return {
-        "text": entry.content,
-        "emotional_spectrum_band": predicted_band,
-        "confidence_score": round(confidence, 2),
-        "engine": "Trained ML Classifier (Scikit-Learn)"
-    }
-
-
 @router.get("/wellness/insights")
 def wellness_insights(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     notes = get_notes(db, current_user)
     if not notes:
         return {"average_sentiment": 0.0, "status": "No notes yet", "total_analyzed": 0}
     
-    # Calculate counts based on ML sentiment bands across all notes (old and new!)
     heavy_count = sum(1 for n in notes if n.sentiment_band == "Carrying Heavy Weight")
     light_count = sum(1 for n in notes if n.sentiment_band == "Grounded & Light")
+    distress_count = sum(1 for n in notes if n.sentiment_band == "Critical Distress")
     total = len(notes)
 
     status = "Calm & Balanced"
-    if heavy_count > light_count:
+    if distress_count > 0 or heavy_count > light_count:
         status = "Carrying Heavy Stress"
     elif light_count > heavy_count:
         status = "Positive & Uplifted"
@@ -256,7 +165,8 @@ def wellness_insights(db: Session = Depends(get_db), current_user: User = Depend
         "status": status,
         "total_analyzed": total,
         "heavy_reflections": heavy_count,
-        "grounded_reflections": light_count
+        "grounded_reflections": light_count,
+        "critical_distress": distress_count
     }
 
 

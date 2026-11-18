@@ -1,27 +1,12 @@
 import os
-import joblib
 from models import User, Note, NoteShare, Feedback
 from schemas import NoteCreate, NoteUpdate, UserRegister, UserLogin, FeedbackCreate
 from auth import hash_password, verify_password, create_access_token
+from ai_service import analyze_reflection_with_ai
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime, timezone, timedelta
-
-# --- LOAD LOCAL MACHINE LEARNING SENTIMENT MODEL SAFELY ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "sentiment_model.pkl")
-
-ml_model = None
-try:
-    if os.path.exists(MODEL_PATH):
-        ml_model = joblib.load(MODEL_PATH)
-        print("ML Model loaded successfully in crud.py from:", MODEL_PATH)
-    else:
-        print("Warning: sentiment_model.pkl not found in crud.py directory.")
-except Exception as e:
-    ml_model = None
-    print(f"Warning: Could not load sentiment model in crud.py: {e}")
 
 
 def create_user(db: Session, user: UserRegister):
@@ -121,17 +106,13 @@ def create_note(
     note: NoteCreate,
     current_user: User
 ):
-    full_text = f"{note.title} {note.content}"
-    sentiment_band = "Reflecting & Processing"
-    sentiment_score = 0.5
-
-    if ml_model is not None:
-        try:
-            sentiment_band = ml_model.predict([full_text])[0]
-            probabilities = ml_model.predict_proba([full_text])[0]
-            sentiment_score = float(max(probabilities))
-        except Exception as e:
-            print("ML prediction error in create_note:", e)
+    # Analyze reflection using OpenRouter Free AI
+    ai_analysis = analyze_reflection_with_ai(note.title, note.content)
+    
+    sentiment_band = ai_analysis.get("sentiment_band", "Reflecting & Processing")
+    sentiment_score = ai_analysis.get("sentiment_score", 0.5)
+    crisis_detected = ai_analysis.get("crisis_detected", False)
+    empathetic_insight = ai_analysis.get("empathetic_insight", "")
 
     new_note = Note(
         title=note.title,
@@ -145,6 +126,8 @@ def create_note(
     db.commit()
     db.refresh(new_note)
 
+    # Return dictionary or object containing crisis flags if frontend needs it immediately
+    # (NoteResponse schema handles standard fields, you can attach custom metadata if needed)
     return new_note
 
 
@@ -160,18 +143,6 @@ def get_notes(
         )
         .all()
     )
-
-    # Lazy backfill for older notes missing sentiment data
-    if ml_model is not None:
-        for note in all_notes:
-            if not note.sentiment_band:
-                try:
-                    full_text = f"{note.title} {note.content}"
-                    note.sentiment_band = ml_model.predict([full_text])[0]
-                    note.sentiment_score = float(max(ml_model.predict_proba([full_text])[0]))
-                    db.commit()
-                except Exception:
-                    pass
 
     return all_notes
 
@@ -276,14 +247,10 @@ def update_note(
     existing_note.title = note.title
     existing_note.content = note.content
     
-    # Re-run ML model on updated content
-    if ml_model is not None:
-        try:
-            full_text = f"{note.title} {note.content}"
-            existing_note.sentiment_band = ml_model.predict([full_text])[0]
-            existing_note.sentiment_score = float(max(ml_model.predict_proba([full_text])[0]))
-        except Exception as e:
-            print("ML prediction error in update_note:", e)
+    # Re-run OpenRouter AI on updated content
+    ai_analysis = analyze_reflection_with_ai(note.title, note.content)
+    existing_note.sentiment_band = ai_analysis.get("sentiment_band", existing_note.sentiment_band)
+    existing_note.sentiment_score = ai_analysis.get("sentiment_score", existing_note.sentiment_score)
 
     existing_note.updated_at = datetime.now(timezone.utc)
     db.commit()

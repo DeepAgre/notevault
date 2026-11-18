@@ -89,11 +89,32 @@ function App() {
           }
         />
 
-        <Route path="/reflections" element={<Reflections />} />
+        <Route
+          path="/reflections"
+          element={
+            <ProtectedRoute>
+              <Reflections />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/wellness-arcade" element={<WellnessArcade />} />
+        <Route
+          path="/wellness-arcade"
+          element={
+            <ProtectedRoute>
+              <WellnessArcade />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/about" element={<About />} />
+        <Route
+          path="/about"
+          element={
+            <ProtectedRoute>
+              <About />
+            </ProtectedRoute>
+          }
+        />
 
       </Routes>
     </>
