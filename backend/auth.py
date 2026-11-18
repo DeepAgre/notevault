@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
-from passlib.context import CryptContext
+import bcrypt
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -18,17 +18,25 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY is not configured")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 
-def hash_password(password: str):
-    return pwd_context.hash(password)
+def hash_password(password: str) -> str:
+    pwd_bytes = password.encode("utf-8")
+    if len(pwd_bytes) > 72:
+        pwd_bytes = pwd_bytes[:72]
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(pwd_bytes, salt)
+    return hashed.decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        return pwd_context.verify(plain_password, hashed_password)
+        pwd_bytes = plain_password.encode("utf-8")
+        if len(pwd_bytes) > 72:
+            pwd_bytes = pwd_bytes[:72]
+        hash_bytes = hashed_password.encode("utf-8")
+        return bcrypt.checkpw(pwd_bytes, hash_bytes)
     except Exception:
         return False
 
