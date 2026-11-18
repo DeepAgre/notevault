@@ -8,13 +8,17 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime, timezone, timedelta
 
-# --- LOAD LOCAL MACHINE LEARNING SENTIMENT MODEL ---
+# --- LOAD LOCAL MACHINE LEARNING SENTIMENT MODEL SAFELY ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "sentiment_model.pkl")
 
+ml_model = None
 try:
-    ml_model = joblib.load(MODEL_PATH)
-    print("ML Model loaded successfully in crud.py from:", MODEL_PATH)
+    if os.path.exists(MODEL_PATH):
+        ml_model = joblib.load(MODEL_PATH)
+        print("ML Model loaded successfully in crud.py from:", MODEL_PATH)
+    else:
+        print("Warning: sentiment_model.pkl not found in crud.py directory.")
 except Exception as e:
     ml_model = None
     print(f"Warning: Could not load sentiment model in crud.py: {e}")
@@ -121,7 +125,7 @@ def create_note(
     sentiment_band = "Reflecting & Processing"
     sentiment_score = 0.5
 
-    if ml_model:
+    if ml_model is not None:
         try:
             sentiment_band = ml_model.predict([full_text])[0]
             probabilities = ml_model.predict_proba([full_text])[0]
@@ -158,7 +162,7 @@ def get_notes(
     )
 
     # Lazy backfill for older notes missing sentiment data
-    if ml_model:
+    if ml_model is not None:
         for note in all_notes:
             if not note.sentiment_band:
                 try:
@@ -273,7 +277,7 @@ def update_note(
     existing_note.content = note.content
     
     # Re-run ML model on updated content
-    if ml_model:
+    if ml_model is not None:
         try:
             full_text = f"{note.title} {note.content}"
             existing_note.sentiment_band = ml_model.predict([full_text])[0]

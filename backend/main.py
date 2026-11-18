@@ -46,13 +46,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- LOAD LOCAL MACHINE LEARNING SENTIMENT MODEL ---
+# --- LOAD LOCAL MACHINE LEARNING SENTIMENT MODEL SAFELY ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "sentiment_model.pkl")
 
+ml_model = None
 try:
-    ml_model = joblib.load(MODEL_PATH)
-    print("ML Model loaded successfully from:", MODEL_PATH)
+    if os.path.exists(MODEL_PATH):
+        ml_model = joblib.load(MODEL_PATH)
+        print("ML Model loaded successfully from:", MODEL_PATH)
+    else:
+        print(f"Warning: sentiment_model.pkl not found at {MODEL_PATH}. Running without ML model.")
 except Exception as e:
     ml_model = None
     print(f"Warning: Could not load sentiment model from {MODEL_PATH}: {e}")
@@ -113,11 +117,11 @@ def make_note(
         except Exception as e:
             print("ML prediction error on note creation:", e)
 
-    # Create note with AI sentiment fields populated
+    # Create note with AI sentiment fields populated (Fixed owner_id matching models.py)
     db_note = Note(
         title=note.title,
         content=note.content,
-        user_id=current_user.id,
+        owner_id=current_user.id,
         sentiment_band=band,
         sentiment_score=score
     )
