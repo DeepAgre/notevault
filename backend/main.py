@@ -193,4 +193,7 @@ def submit_feedback(
 
 app.include_router(router)
 
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as exc:
+    logger.error("Failed to initialize database tables: %s", exc)
