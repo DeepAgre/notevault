@@ -27,6 +27,10 @@ from schemas import (
 )
 from pydantic import BaseModel
 
+import logging
+
+logger = logging.getLogger("notevault")
+
 app = FastAPI()
 router = APIRouter(prefix="/api")
 
@@ -39,6 +43,7 @@ app.add_middleware(
         "http://192.168.0.100:5174",
         "http://192.168.0.101:5173",
         "http://192.168.0.101:5174",
+        "https://notevaultspace.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
