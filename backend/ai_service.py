@@ -27,7 +27,7 @@ def analyze_reflection_with_ai(title: str, content: str):
     }
 
     payload = {
-        "model": os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-lite-001"),
+        "model": os.getenv("OPENROUTER_MODEL", "inclusionai/ling-3.2-flash:free"),
         "messages": [
             {
                 "role": "system",
