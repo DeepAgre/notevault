@@ -1,4 +1,11 @@
 import os
+import sys
+from pathlib import Path
+
+BACKEND_DIR = str(Path(__file__).resolve().parent)
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends, APIRouter, HTTPException
 from database import engine, Base, get_db
