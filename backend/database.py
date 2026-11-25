@@ -12,7 +12,9 @@ if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not configured")
 
 if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 connect_args = {}
 if DATABASE_URL.startswith("postgresql") and "localhost" not in DATABASE_URL and "127.0.0.1" not in DATABASE_URL:
